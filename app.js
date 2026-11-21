@@ -203,7 +203,7 @@ function showCart(){
    body.replaceChildren($('#empty-cart-content').content.cloneNode(true));
    return;
  }
- body.innerHTML=dishes.filter(d=>cart[d.id]).map(d=>'<div class="cart-row"><img src="'+assets[d.id]+'" alt=""><div><h3>'+d.name+'</h3>'+stepper(d)+'</div><div class="row-end"><strong>'+price(d.price*cart[d.id])+'</strong><button class="remove" data-do="remove" data-id="'+d.id+'" aria-label="Удалить '+d.name+'">'+icon('trash')+'</button></div></div>').join('')+'<div class="total">Итого<strong>'+price(total())+'</strong></div><button class="primary full" data-do="checkout">Перейти к оформлению</button><p class="note">Демо-заказ · Без списания средств</p>';
+ body.innerHTML=orderSteps(1)+dishes.filter(d=>cart[d.id]).map(d=>'<div class="cart-row"><img src="'+assets[d.id]+'" alt=""><div><h3>'+d.name+'</h3>'+stepper(d)+'</div><div class="row-end"><strong>'+price(d.price*cart[d.id])+'</strong><button class="remove" data-do="remove" data-id="'+d.id+'" aria-label="Удалить '+d.name+'">'+icon('trash')+'</button></div></div>').join('')+'<div class="total">Итого<strong>'+price(total())+'</strong></div><button class="primary full" data-do="checkout">Перейти к оформлению</button><p class="note">Демо-заказ · Без списания средств</p>';
 }
 function showInfo(){openPanel('Доставка и самовывоз','info');body.innerHTML='<div class="info"><section><h3>'+icon('truck')+'Доставка по Смоленску</h3><p class="panel-copy">Выберите день и время, затем укажите улицу, дом и квартиру. В демо доставка бесплатная.</p></section><section><h3>'+icon('bag')+'Самовывоз</h3><p class="panel-copy">Выберите время получения в сэндвич-шопе «Нахлебники» в Смоленске.</p></section><section><h3>Демонстрационный режим</h3><p class="panel-copy">Заказ оформляется только на этом устройстве. Деньги не списываются, а ресторан не получает заявку.</p></section></div><button class="primary full" data-do="menu">Перейти в меню</button>'}
 const moscowNow=()=>new Date(Date.now()+3*3600000);
@@ -238,12 +238,43 @@ function lastOrderItems(order) {
      return {id, count, dish, name: typeof oldName === 'string' ? oldName : dish?.name || id};
    });
 }
+function clubState(order = read(lastOrderKey)) {
+ const saved = order.club;
+ if (saved && [saved.orders, saved.balance].every(n => Number.isSafeInteger(n) && n >= 0)) return saved;
+ return {orders: order.number ? 1 : 0, balance: 0};
+}
+function clubCard(order) {
+ const {orders, balance} = clubState(order);
+ const level = orders >= 10 ? 'Легенда' : orders >= 3 ? 'Свой' : 'Новичок';
+ const goal = orders < 3 ? 3 : 10;
+ const mascot = $('.sandwich-feature img').getAttribute('src');
+ return `<section class="club" aria-label="Клуб Нахлебников">
+   <div class="club-pass"><div><h3>Клуб Нахлебников</h3><strong>${level}</strong><p>${balance} демо-баллов</p></div><img src="${mascot}" alt=""></div>
+   <div class="club-stats"><div><h4>Уровень</h4><p>${orders >= 10 ? 'Высший уровень' : orders+' из '+goal+' заказов до уровня «'+(goal===3?'Свой':'Легенда')+'»'}</p><progress value="${Math.min(orders,goal)}" max="${goal}" aria-label="Прогресс уровня"></progress></div>
+   <div><h4>Достижения</h4><p>${orders ? 'Первый заказ ✓' : 'Оформи первый заказ'}${orders >= 3 ? ' · Свой в шопе ✓' : ''}${orders >= 10 ? ' · Легенда шопа ✓' : ''}</p></div></div>
+   <p class="club-rules">5% от суммы после скидки вернутся демо-баллами. 1 балл = 1 ₽ скидки на следующий демо-заказ.</p>
+ </section>`;
+}
+function orderSteps(step) {
+ return `<ol class="order-steps" aria-label="Этапы заказа"><li ${step===1?'aria-current="step"':''}>1 · Корзина</li><li ${step===2?'aria-current="step"':''}>2 · Проверка</li></ol>`;
+}
+function checkoutAmounts() {
+ const subtotal = total();
+ const discount = $('#use-points')?.checked ? Math.min(clubState().balance, subtotal) : 0;
+ const amount = subtotal - discount;
+ return {amount, discount, earned:Math.floor(amount / 20)};
+}
+function refreshCheckoutTotal() {
+ const {amount, earned} = checkoutAmounts();
+ $('#pay-amount').textContent = price(amount);
+ $('#earn-points').textContent = 'Начислим демо-баллов: '+earned;
+}
 function showProfile() {
  const {name} = read(contactKey);
  const order = read(lastOrderKey);
  const lines = lastOrderItems(order);
  openPanel(typeof name === 'string' && name.trim() ? 'Привет, '+name.trim()+'!' : 'Профиль', 'profile');
- body.innerHTML = `<div class="profile-page">
+ body.innerHTML = `<div class="profile-page">${clubCard(order)}
  <section class="last-order"><div class="last-order-content"><h3>Последний заказ</h3><div id="last-order-body"></div></div></section>
  <div class="profile-rows profile-support">${profileRow('Служба заботы','support','care')}</div>
  <section><h3>Настройки</h3><div class="profile-rows">
@@ -369,10 +400,15 @@ function saveContacts(form) {
 }
 function showCheckout(){
  if(!qty()){showCart();return}
- openPanel('Оформление заказа','checkout');
- body.innerHTML='<button class="back" data-do="cart">'+icon('back')+' В корзину</button><form id="checkout"><fieldset><legend>Как получить</legend><div class="mode-group"><label><input type="radio" name="mode" value="delivery" checked><span>'+icon('truck')+' Доставка</span></label><label><input type="radio" name="mode" value="pickup"><span>'+icon('bag')+' Самовывоз</span></label></div></fieldset><label class="field" id="saved-field" hidden>Сохранённые адреса<select id="saved-address"><option value="">Выберите адрес</option></select></label><label class="field" id="address-field">Адрес в Смоленске<input name="address" id="address" autocomplete="street-address" maxlength="240" placeholder="Улица, дом, квартира" required></label><p class="note" id="pickup-note" hidden>Самовывоз из сэндвич-шопа «Нахлебники», Смоленск.</p><div class="split"><label class="field">День<select name="day" id="day" required></select></label><label class="field">Время (МСК)<select name="time" id="time" required></select></label></div><h3 class="subhead">Ваши контакты</h3>'+contactFields+'<label class="field">Способ оплаты<select name="payment"><option value="card">Картой при получении</option><option value="cash">Наличными при получении</option></select></label><div class="checkout-total"><div class="total">Итого<strong>'+price(total())+'</strong></div><p class="note">Демо-заказ сохраняется на этом устройстве. Оплата не взимается.</p><button class="primary full" type="submit">Оформить демо-заказ</button></div></form>';
+ openPanel('Проверка заказа','checkout');
+ const items = dishes.filter(d => cart[d.id]).map(d => `<li><span>${d.name} × ${cart[d.id]}</span><strong>${price(d.price*cart[d.id])}</strong></li>`).join('');
+ const balance = clubState().balance;
+ const redeem = balance ? `<label class="redeem"><input type="checkbox" id="use-points" name="redeem" value="yes"> Списать ${Math.min(total(),balance)} демо-баллов</label>` : '';
+ body.innerHTML=orderSteps(2)+'<button class="back" data-do="cart">'+icon('back')+' В корзину</button><form id="checkout"><section class="review-items"><h3>Состав заказа</h3><ul>'+items+'</ul></section><fieldset><legend>Как получить</legend><div class="mode-group"><label><input type="radio" name="mode" value="delivery" checked><span>'+icon('truck')+' Доставка</span></label><label><input type="radio" name="mode" value="pickup"><span>'+icon('bag')+' Самовывоз</span></label></div></fieldset><label class="field" id="saved-field" hidden>Сохранённые адреса<select id="saved-address"><option value="">Выберите адрес</option></select></label><label class="field" id="address-field">Адрес в Смоленске<input name="address" id="address" autocomplete="street-address" maxlength="240" placeholder="Улица, дом, квартира" required></label><p class="note" id="pickup-note" hidden>Самовывоз из сэндвич-шопа «Нахлебники», Смоленск.</p><div class="split"><label class="field">День<select name="day" id="day" required></select></label><label class="field">Время (МСК)<select name="time" id="time" required></select></label></div><h3 class="subhead">Ваши контакты</h3>'+contactFields+'<label class="field">Способ оплаты<select name="payment"><option value="card">Картой при получении</option><option value="cash">Наличными при получении</option></select></label><div class="checkout-total">'+redeem+'<div class="total">К оплате<strong id="pay-amount"></strong></div><p id="earn-points" class="note"></p><p class="note">Демо-заказ сохраняется на этом устройстве. Оплата не взимается.</p><button class="primary full" type="submit">Оформить демо-заказ</button></div></form>';
  const f=$('#checkout'),previous=Object.assign({},read(contactKey),draft);
  for(const key of ['address','name','phone','email','payment'])if(typeof previous[key]==='string')f.elements[key].value=previous[key];
+ if ($('#use-points')) $('#use-points').checked = previous.redeem === 'yes';
+ refreshCheckoutTotal();
  const picker = $('#saved-address');
  for (const address of savedAddresses()) picker.add(new Option(address, address));
  picker.value = previous.address || '';
@@ -387,14 +423,16 @@ function confirmOrder(f){
  if(!slots(data.day).includes(data.time)){updateTimes();$('#time').setCustomValidity('Выберите новое время получения.')}
  if(!f.reportValidity())return;
  if(!qty()){showCart();return}
- const sum=total(),order={number:String(Date.now()).slice(-6),mode:data.mode,day:data.day,time:data.time,payment:data.payment,amount:sum,items:{...cart},address:data.address||''};
+ const club=clubState();
+ const {amount:sum, discount, earned}=checkoutAmounts();
+ const order={number:String(Date.now()).slice(-6),mode:data.mode,day:data.day,time:data.time,payment:data.payment,amount:sum,discount,earned,club:{orders:club.orders+1,balance:club.balance-discount+earned},items:{...cart},address:data.address||''};
  savedAddresses(); // Migrate the previous delivery address before replacing its order.
  if (order.mode === 'delivery') rememberAddress(order.address);
  order.names = Object.fromEntries(dishes.filter(dish => cart[dish.id]).map(dish => [dish.id, dish.name]));
  write(lastOrderKey,order);saveContacts(f);
  cart={};write(cartKey,cart);draft={};renderMenu();openPanel('Заказ оформлен','receipt');
  body.innerHTML='<div class="receipt"><span class="receipt-mark">'+icon('check')+'</span><h3>Демо-заказ № '+order.number+'</h3><p class="panel-copy">Заказ оформлен на этом устройстве. Деньги не списаны, заявка в ресторан не отправлена.</p><dl id="summary"></dl><button class="primary full" data-do="menu">Вернуться в меню</button></div>';
- const rows=[['Получение',data.mode==='delivery'?'Доставка':'Самовывоз'],[data.mode==='delivery'?'Адрес':'Место',data.mode==='delivery'?data.address:'«Нахлебники», Смоленск'],['Ко времени',dayLabel(data.day)+', '+data.time+' МСК'],['Оплата',data.payment==='card'?'Картой при получении':'Наличными при получении'],['Итого',price(sum)]];
+ const rows=[['Получение',data.mode==='delivery'?'Доставка':'Самовывоз'],[data.mode==='delivery'?'Адрес':'Место',data.mode==='delivery'?data.address:'«Нахлебники», Смоленск'],['Ко времени',dayLabel(data.day)+', '+data.time+' МСК'],['Оплата',data.payment==='card'?'Картой при получении':'Наличными при получении'],['Скидка баллами',price(discount)],['К оплате',price(sum)],['Начислено баллов',String(earned)]];
  rows.forEach(([label,value])=>{const dt=document.createElement('dt'),dd=document.createElement('dd');dt.textContent=label;dd.textContent=value;$('#summary').append(dt,dd)});
 }
 function changeCart(action,id,button){
@@ -466,7 +504,7 @@ document.addEventListener('click',e=>{
  if(action==='close'){storeDraft();panel.close()}
  if(action==='menu')openMenuTab('catalog');
 });
-document.addEventListener('change',e=>{if(e.target.id==='saved-address' && e.target.value){$('#address').value=e.target.value;$('#address').setCustomValidity('')}if(e.target.name==='mode')updateMode();if(e.target.id==='day')updateTimes();if(e.target.id==='time')e.target.setCustomValidity('')});
+document.addEventListener('change',e=>{if(e.target.id==='use-points')refreshCheckoutTotal();if(e.target.id==='saved-address' && e.target.value){$('#address').value=e.target.value;$('#address').setCustomValidity('')}if(e.target.name==='mode')updateMode();if(e.target.id==='day')updateTimes();if(e.target.id==='time')e.target.setCustomValidity('')});
 document.addEventListener('input',e=>{if(e.target.id==='dish-query')renderSearchResults(); if(e.target.id==='address') $('#saved-address').value=e.target.value; if (['checkout','profile','edit-address'].includes(e.target.form?.id)) e.target.setCustomValidity(''); if(e.target.form?.id==='profile') $('.profile-feedback').textContent='';});
 document.addEventListener('submit', e => {
  const form = e.target;

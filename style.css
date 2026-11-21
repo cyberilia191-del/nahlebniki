@@ -359,3 +359,34 @@ dialog.empty-cart-screen .panel-inner {
 .catalog-tile:hover,.catalog-tile:focus-visible { box-shadow:0 0 0 2px var(--red); }
 .catalog-back { min-height:44px; }
 #catalog-list .section-heading { margin-bottom:18px; }
+
+/* Painted accents repeat across the shop, club card and order steps. */
+:root { --bg:#100f10; --red:#ff4435; --panel:#201e20; }
+.sandwich-feature::before,.club-pass::before {
+  content:""; position:absolute; inset:10% -5% 6% 23%; pointer-events:none;
+  background:repeating-linear-gradient(174deg,transparent 0 7px,#160c0bb8 8px 13px,transparent 14px 18px);
+  clip-path:polygon(8% 25%,90% 0,74% 24%,100% 15%,63% 56%,92% 48%,6% 100%,28% 67%,0 75%,28% 40%);
+}
+.sandwich-feature span,.catalog-tile span { text-shadow:0 2px 8px #170c0b80; }
+.section-heading .rule { height:5px;background:linear-gradient(100deg,var(--red),transparent 85%);transform:skew(-28deg); }
+.product .photo { aspect-ratio:1.65; }
+.product h3,.product .price { color:white; }
+.club-pass { position:relative;isolation:isolate;overflow:hidden;min-height:160px;padding:22px 41% 22px 20px;border-radius:16px;background:#c83125;color:white; }
+.club-pass div { position:relative;z-index:1; }
+.club-pass h3 { font:700 1.05rem var(--display);text-transform:uppercase; }
+.club-pass strong { display:block;font:italic 700 clamp(2.4rem,8vw,3.5rem)/1.2 var(--display);text-transform:uppercase; }
+.club-pass img { position:absolute;right:-2%;bottom:-5%;height:100%;width:46%;object-fit:contain;transform:rotate(8deg); }
+.club-pass p { font-weight:bold;margin-top:8px; }
+.club-stats { display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:8px 0; }
+.club-stats>div,.review-items { background:#252324;border:1px solid var(--line);border-radius:12px;padding:14px; }
+.club-stats h4,.review-items h3 { font:700 1.2rem var(--display);margin:0 0 5px; }
+.club-stats p,.club-rules { font-size:.88rem; }
+.club-rules { color:var(--muted); }
+.club-stats progress { width:100%;height:7px;accent-color:var(--red); }
+.order-steps { padding:0;margin:0 0 18px;display:flex;gap:8px;list-style:none; }
+.order-steps li { flex:1;border-top:3px solid var(--line);padding-top:6px;color:var(--muted); }
+.order-steps [aria-current] { color:white;border-color:var(--red);font-weight:bold; }
+.review-items ul { list-style:none;margin:0;padding:0; }
+.review-items li { display:flex;justify-content:space-between;gap:12px;padding-top:6px; }
+.review-items li strong { white-space:nowrap; }
+.redeem { display:flex;align-items:center;gap:8px;min-height:44px;cursor:pointer; }

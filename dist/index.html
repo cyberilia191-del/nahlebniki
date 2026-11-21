@@ -32,9 +32,14 @@
 </div>
 </section></main>
 <footer><div class="wrap"><strong>НАХЛЕБНИКИ</strong><span>Сэндвич-шоп · Смоленск</span><button data-do="info">О демо-заказах</button></div></footer>
-<nav class="recipe-nav" aria-label="Просмотр рецептов">
-<button data-view="all" aria-pressed="true" aria-controls="products"><i data-icon="grid"></i>Все рецепты</button>
-<button data-view="favorites" aria-pressed="false" aria-controls="products"><i data-icon="heart"></i>Избранное</button>
+<nav class="app-nav" aria-label="Основные разделы">
+<div class="nav-track">
+<button data-tab="home" aria-current="page"><i data-icon="home"></i><span>Главная</span></button>
+<button data-tab="catalog"><i data-icon="grid"></i><span>Каталог</span></button>
+<button data-tab="pickup" aria-label="Где забрать заказ"><i class="map-circle" data-icon="map"></i></button>
+<button data-tab="cart"><i data-icon="bag"></i><span>Корзина</span></button>
+<button data-tab="profile"><i data-icon="person"></i><span>Профиль</span></button>
+</div>
 </nav>
 <dialog id="panel" aria-labelledby="panel-title"><div class="panel-inner"><div class="panel-header"><h2 id="panel-title"></h2><button class="icon-btn" aria-label="Закрыть" data-do="close"><i data-icon="close"></i></button></div><div id="panel-body"></div></div></dialog>
 <div class="sr" role="status" id="status"></div>

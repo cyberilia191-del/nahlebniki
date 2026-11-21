@@ -42,7 +42,14 @@ const shapes = {
 function icon(name){return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'+shapes[name]+'</svg>'}
 document.querySelectorAll('[data-icon]').forEach(el=>el.innerHTML=icon(el.dataset.icon));
 const assets = Object.fromEntries(dishes.map(d=>[d.id,'assets/'+d.id+'.jpg']));
-const cats = [['Всё меню','grid'],['Сэндвичи','sandwich'],['Бургеры','burger'],['Закуски','fries'],['Напитки','drink'],['Соусы','sauce']];
+const sections = [
+ {category:'Сэндвичи', title:'Хочу сэндвич', photo:'pastrami'},
+ {category:'Напитки', title:'Что попить', photo:'lemonade'},
+ {category:'Бургеры', title:'Хочу бургер', photo:'smash'},
+ {category:'Закуски', title:'К сэндвичу', photo:'fries'},
+ {category:'Соусы', title:'Соусы', photo:'sauce'},
+ {category:'Всё меню', title:'Всё меню', photo:'cheese'}
+];
 const $=s=>document.querySelector(s);
 const cartKey='nahlebniki.cart.v1',contactKey='nahlebniki.contact.v1';
 function read(key){try{return JSON.parse(localStorage.getItem(key))||{}}catch{return {}}}
@@ -62,7 +69,11 @@ const total=()=>dishes.reduce((sum,d)=>sum+d.price*(cart[d.id]||0),0);
 const qty=()=>Object.values(cart).reduce((a,b)=>a+b,0);
 function stepper(d){return '<div class="stepper"><button data-do="minus" data-id="'+d.id+'" aria-label="Убрать одну порцию, '+d.name+'">'+icon('minus')+'</button><output aria-label="Количество">'+cart[d.id]+'</output><button data-do="plus" data-id="'+d.id+'" aria-label="Добавить ещё, '+d.name+'" '+(cart[d.id]>=99?'disabled':'')+'>'+icon('plus')+'</button></div>'}
 function addButton(d){return cart[d.id]?stepper(d):'<button class="add-square" data-do="plus" data-id="'+d.id+'" aria-label="Добавить в корзину, '+d.name+'">'+icon('plus')+'</button>'}
-function renderCategories(){$('#categories').innerHTML=cats.map(([name,symbol])=>'<button class="category" data-cat="'+name+'" aria-pressed="'+(name===selected)+'">'+icon(symbol)+name+'</button>').join('')}
+function renderCategories() {
+ $('#categories').innerHTML = sections.map(({category,title,photo}) =>
+   `<button type="button" class="catalog-tile" data-cat="${category}"><img src="${assets[photo]}" alt=""><span>${title}</span></button>`
+ ).join('');
+}
 function favoriteButton(dish) {
  return `<button class="favorite-heart" data-favorite="${dish.id}" aria-label="Избранное — ${dish.name}" aria-pressed="${favorites.has(dish.id)}">${icon('heart')}</button>`;
 }
@@ -88,7 +99,8 @@ function selectTab(name) {
  appNav.style.setProperty('--tab-index', index);
  appNav.classList.toggle('map-active', name === 'pickup');
 }
-let menuTab = location.hash === '#menu' ? 'catalog' : 'home';
+let menuTab;
+history.scrollRestoration = 'manual';
 function openPanel(title, view) {
  screen = view;
  $('#panel-title').textContent = title;
@@ -99,7 +111,7 @@ function openPanel(title, view) {
  panel.classList.toggle('with-nav', withNav);
  if (withNav) {
    if (appNav.parentElement !== panel) panel.append(appNav);
-   selectTab(section);
+   selectTab(view === 'home-search' ? menuTab : section);
  }
  appNav.hidden = !withNav;
  if (!panel.open) {
@@ -108,30 +120,41 @@ function openPanel(title, view) {
  }
  panel.scrollTop = 0;
 }
-function openMenuTab(name) {
+function applyRoute() {
  if (panel.open) panel.close();
- if (name !== menuTab) {
-   history.pushState(null, '', name === 'catalog' ? '#menu' : '#top');
- }
- displayMenuTab(name);
- window.scrollTo({top: 0, behavior: 'instant'});
+ const section = sections.find(item => location.hash === '#menu/' + item.photo);
+ menuTab = section || location.hash === '#menu' ? 'catalog' : 'home';
+ selected = section?.category || 'Всё меню';
+ favoritesOnly = false;
+ $('#home-actions').hidden = menuTab !== 'home';
+ $('#menu').hidden = menuTab !== 'catalog';
+ $('#catalog-cover').hidden = Boolean(section);
+ $('#catalog-list').hidden = !section;
+ $('#category-title').textContent = section?.category || '';
+ selectTab(menuTab);
+ renderMenu();
+ window.scrollTo({top: history.state?.scrollY || 0, behavior:'instant'});
 }
-function displayMenuTab(name) {
- menuTab = name;
- $('#home-actions').hidden = name !== 'home';
- $('#menu').hidden = name !== 'catalog';
- selectTab(name);
+function navigate(hash, state = {}) {
+ if (hash !== location.hash) {
+   history.replaceState({...history.state, scrollY:window.scrollY}, '');
+   history.pushState(state, '', hash);
+ }
+ applyRoute();
+}
+function openMenuTab(name) {
+ navigate(name === 'catalog' ? '#menu' : '#top');
+}
+function openCategory(category) {
+ const section = sections.find(item => item.category === category);
+ if (!section) return;
+ if (location.hash !== '#menu') navigate('#menu');
+ navigate('#menu/' + section.photo, {fromCover:true});
+ $('#category-title').focus({preventScroll:true});
 }
 function refreshGreeting() {
  const {name} = read(contactKey);
  $('#greeting').textContent = typeof name === 'string' && name.trim() ? 'Привет, '+name.trim()+'!' : 'Привет!';
-}
-function homeMenu(category) {
- selected = category;
- favoritesOnly = false;
- renderCategories();
- renderMenu();
- openMenuTab('catalog');
 }
 function showSearch() {
  openPanel('Поиск по меню', 'home-search');
@@ -415,7 +438,8 @@ document.addEventListener('click',e=>{
    $('#status').textContent = dish.name + (wasSaved ? ' — убрано из избранного' : ' — добавлено в избранное');
    return;
  }
- const cat=e.target.closest('[data-cat]');if(cat){selected=cat.dataset.cat;renderCategories();renderMenu();$('#categories [aria-pressed=true]').focus({preventScroll:true});return}
+ const tile = e.target.closest('[data-cat]');
+ if (tile) { openCategory(tile.dataset.cat); return; }
  const addressButton = e.target.closest('[data-edit-address]');
  if (addressButton) { editAddress(addressButton.dataset.editAddress); return; }
  const button=e.target.closest('[data-do]');if(!button)return;
@@ -426,8 +450,9 @@ document.addEventListener('click',e=>{
  if(action==='personal')showPersonal();
  if(action==='care')showCare();
  if(action==='search')showSearch();
- if(action==='sandwiches')homeMenu('Сэндвичи');
- if(action==='all-dishes'){e.preventDefault();homeMenu('Всё меню')}
+ if(action==='sandwiches')openCategory('Сэндвичи');
+ if(action==='all-dishes'){e.preventDefault();openMenuTab('catalog')}
+ if(action==='sections'){if(history.state?.fromCover) history.back(); else openMenuTab('catalog')}
  if(action==='pickup-location')showPickup();
  if(action==='news')showNews();
  if(action==='home-about')showAbout(true);
@@ -471,12 +496,7 @@ panel.addEventListener('close', () => {
  appNav.hidden = false;
  selectTab(menuTab);
 });
-displayMenuTab(menuTab);
-window.addEventListener('hashchange', () => {
- if (panel.open) panel.close();
- displayMenuTab(location.hash === '#menu' ? 'catalog' : 'home');
- window.scrollTo({top: 0, behavior: 'instant'});
-});
+window.addEventListener('popstate', applyRoute);
 
 window.addEventListener('storage',e=>{if(e.key===cartKey||e.key===null){cart=getCart();renderMenu();if(screen==='cart')showCart();if(screen==='checkout'){storeDraft();showCheckout()}}});
 window.addEventListener('storage', event => {
@@ -486,82 +506,13 @@ window.addEventListener('storage', event => {
    renderMenu();
  }
 });
-renderCategories();renderMenu();
+renderCategories();applyRoute();
 refreshGreeting();
 
-function enableHomeReveal() {
- const home = $('#home-actions');
- const hint = $('#reveal-hint');
- const story = $('#home-story');
- const label = $('#reveal-label');
- const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)');
- const threshold = 64;
- let drag = null;
-
- function updateReady() {
-   const edge = hint.getBoundingClientRect().bottom;
-   home.classList.toggle('pull-ready', !home.hidden && !panel.open && !home.classList.contains('story-open') &&
-     edge > 0 && edge <= appNav.getBoundingClientRect().top + 1);
- }
- function setOpen(open) {
-   home.classList.toggle('story-open', open);
-   updateReady();
-   hint.setAttribute('aria-expanded', String(open));
-   story.setAttribute('aria-hidden', String(!open));
-   label.textContent = open ? 'Свернуть блок' : 'Потяни вверх, чтобы увидеть больше';
-   if (open) {
-     const distance = story.getBoundingClientRect().top - window.innerHeight * .48;
-     if (distance > 0) window.scrollBy({top:distance, behavior:reducedMotion.matches ? 'instant' : 'smooth'});
-   }
- }
- function resetDrag() {
-   drag = null;
-   home.classList.remove('is-pulling');
-   for (const key of ['--pull-offset','--pull-row','--pull-opacity']) home.style.removeProperty(key);
- }
- function move(event) {
-   if (!drag) return;
-   const touch = event.touches[0];
-   if (event.touches.length !== 1 || touch.identifier !== drag.id) {
-     resetDrag();
-     return;
-   }
-   const dy = drag.y - touch.clientY;
-   const dx = Math.abs(touch.clientX - drag.x);
-   if (!drag.active) {
-     if (dy < 0 || dx > Math.abs(dy)) { resetDrag(); return; }
-     if (dy === 0) return;
-     drag.active = true;
-     home.classList.add('is-pulling');
-   }
-   if (event.cancelable) event.preventDefault();
-   if (reducedMotion.matches) return;
-   const amount = 1 - Math.exp(-Math.max(0, dy) / threshold);
-   home.style.setProperty('--pull-offset', (-42 * amount)+'px');
-   home.style.setProperty('--pull-row', (.5 * amount)+'fr');
-   home.style.setProperty('--pull-opacity', String(amount));
- }
- window.addEventListener('scroll', updateReady, {passive:true});
- new ResizeObserver(updateReady).observe(home);
- window.addEventListener('resize', updateReady);
- home.addEventListener('touchstart', event => {
-   if (drag) resetDrag();
-   if (menuTab !== 'home' || panel.open || home.classList.contains('story-open') || event.touches.length !== 1) return;
-   const edge = hint.getBoundingClientRect().bottom;
-   if (edge <= 0 || edge > appNav.getBoundingClientRect().top + 1) return;
-   const touch = event.touches[0];
-   drag = {id:touch.identifier, x:touch.clientX, y:touch.clientY, active:false};
- }, {passive:true});
- home.addEventListener('touchmove', move, {passive:false});
- document.addEventListener('touchend', event => {
-   if (!drag) return;
-   const touch = event.changedTouches[0];
-   const open = drag.active && touch.identifier === drag.id && drag.y - touch.clientY >= threshold;
-   if (drag.active && event.cancelable) event.preventDefault();
-   resetDrag();
-   if (open) setOpen(true);
- }, {passive:false});
- document.addEventListener('touchcancel', resetDrag, {passive:true});
- hint.addEventListener('click', () => setOpen(!home.classList.contains('story-open')));
-}
-enableHomeReveal();
+const storyButton = $('#reveal-hint');
+storyButton.addEventListener('click', () => {
+ const open = storyButton.getAttribute('aria-expanded') === 'false';
+ storyButton.setAttribute('aria-expanded', String(open));
+ $('#home-story').setAttribute('aria-hidden', String(!open));
+ $('#reveal-label').textContent = open ? 'Свернуть блок' : 'Подробнее о сэндвич-шопе';
+});

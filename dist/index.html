@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#101010">
 <title>НАХЛЕБНИКИ — сэндвич-шоп в Смоленске</title>
-<link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="style.css?v=catalog9">
 </head>
 <body>
 <header class="top"><div class="wrap head-inner">
@@ -30,7 +30,7 @@
 </div>
 <a class="browse-menu" href="#menu" data-do="all-dishes">Перейти в каталог</a>
 <button type="button" id="reveal-hint" class="reveal-hint" aria-expanded="false" aria-controls="home-story">
-  <span class="pull-grip" aria-hidden="true"></span><span id="reveal-label">Потяни вверх, чтобы увидеть больше</span>
+  <span id="reveal-label">Подробнее о сэндвич-шопе</span>
 </button>
 <div id="home-story" class="story-reveal" aria-hidden="true">
   <div class="story-clip">
@@ -44,16 +44,22 @@
   </div>
 </div>
 </section>
-<section id="menu" hidden tabindex="-1" aria-labelledby="menu-title">
-<div class="section-heading"><h2 id="menu-title">КАТАЛОГ</h2><div class="rule"></div>
-<button class="favorite-filter" id="favorite-filter" data-view="toggle" aria-controls="products" aria-pressed="false"><i data-icon="heart"></i>Избранное</button></div>
-<div id="categories" class="categories" role="group" aria-label="Категории меню"></div>
+<section id="menu" hidden tabindex="-1" aria-label="Каталог">
+<button class="search-launch catalog-search" data-do="search"><i data-icon="search"></i>Найти в меню</button>
+<div id="catalog-cover">
+<div class="section-heading"><h2 id="menu-title">КАТАЛОГ</h2><div class="rule"></div></div>
+<div id="categories" class="catalog-tiles" role="group" aria-label="Разделы меню"></div>
+</div>
+<div id="catalog-list" hidden>
+<button class="back catalog-back" data-do="sections">К разделам</button>
+<div class="section-heading"><h2 id="category-title" tabindex="-1"></h2><div class="rule"></div>
+<button class="favorite-filter" id="favorite-filter" aria-controls="products" aria-pressed="false"><i data-icon="heart"></i>Избранное</button></div>
 <div id="products" class="products"></div>
 <div class="favorites-empty" id="favorites-empty" hidden>
 <i data-icon="heart"></i><h3 id="empty-title">Пока нет избранного</h3>
 <p>Нажмите сердечко на карточке блюда, чтобы сохранить его здесь.</p>
 </div>
-</section></main>
+</div></section></main>
 <footer><div class="wrap"><strong>НАХЛЕБНИКИ</strong><span>Сэндвич-шоп · Смоленск</span><button data-do="info">О демо-заказах</button></div></footer>
 <nav class="app-nav" aria-label="Основные разделы">
 <div class="nav-track">
@@ -83,5 +89,5 @@
 </article></template>
 <dialog id="panel" aria-labelledby="panel-title"><div class="panel-inner"><div class="panel-header"><h2 id="panel-title"></h2><button class="icon-btn" aria-label="Закрыть" data-do="close"><i data-icon="close"></i></button></div><div id="panel-body"></div></div></dialog>
 <div class="sr" role="status" id="status"></div>
-<script src="app.js"></script>
+<script src="app.js?v=catalog9"></script>
 </body></html>

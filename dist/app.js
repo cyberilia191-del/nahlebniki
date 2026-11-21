@@ -109,29 +109,29 @@ function openPanel(title, view) {
  panel.scrollTop = 0;
 }
 function openMenuTab(name) {
- menuTab = name;
  if (panel.open) panel.close();
- const y = name === 'catalog' ? window.scrollY + $('#menu').getBoundingClientRect().top - 12 : 0;
- window.scrollTo({top: y, behavior: 'instant'});
+ if (name !== menuTab) {
+   history.pushState(null, '', name === 'catalog' ? '#menu' : '#top');
+ }
+ displayMenuTab(name);
+ window.scrollTo({top: 0, behavior: 'instant'});
+}
+function displayMenuTab(name) {
+ menuTab = name;
+ $('#home-actions').hidden = name !== 'home';
+ $('#menu').hidden = name !== 'catalog';
  selectTab(name);
 }
 function refreshGreeting() {
  const {name} = read(contactKey);
  $('#greeting').textContent = typeof name === 'string' && name.trim() ? 'Привет, '+name.trim()+'!' : 'Привет!';
 }
-function homeMenu(category, browse = false) {
+function homeMenu(category) {
  selected = category;
  favoritesOnly = false;
  renderCategories();
  renderMenu();
- if (!browse) {
-   openMenuTab('catalog');
-   return;
- }
- menuTab = 'home';
- selectTab('home');
- $('#menu').focus({preventScroll:true});
- $('#menu').scrollIntoView({behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'instant' : 'smooth'});
+ openMenuTab('catalog');
 }
 function showSearch() {
  openPanel('Поиск по меню', 'home-search');
@@ -144,7 +144,13 @@ function normalized(text) {
  return text.toLocaleLowerCase('ru-RU').replace(/ё/g, 'е').trim();
 }
 function renderSearchResults() {
- const terms = normalized($('#dish-query').value).split(/\s+/);
+ const query = normalized($('#dish-query').value);
+ if (!query) {
+   $('#search-count').textContent = '';
+   $('#search-results').innerHTML = '<p class="no-matches">Введите название блюда или ингредиент.</p>';
+   return;
+ }
+ const terms = query.split(/\s+/);
  const matches = dishes.filter(dish => {
    const text = normalized(dish.name+' '+dish.description+' '+dish.category);
    return terms.every(term => text.includes(term));
@@ -421,12 +427,11 @@ document.addEventListener('click',e=>{
  if(action==='care')showCare();
  if(action==='search')showSearch();
  if(action==='sandwiches')homeMenu('Сэндвичи');
- if(action==='all-dishes')homeMenu('Всё меню');
+ if(action==='all-dishes'){e.preventDefault();homeMenu('Всё меню')}
  if(action==='pickup-location')showPickup();
  if(action==='news')showNews();
  if(action==='home-about')showAbout(true);
- if(action==='browse'){e.preventDefault();homeMenu('Всё меню',true)}
- if(action==='home')openMenuTab('home');
+ if(action==='home'){e.preventDefault();openMenuTab('home')}
  if(action==='about')showAbout();
  if(action==='addresses')showAddresses();
  if(action==='new-address')editAddress();
@@ -466,7 +471,12 @@ panel.addEventListener('close', () => {
  appNav.hidden = false;
  selectTab(menuTab);
 });
-selectTab(menuTab);
+displayMenuTab(menuTab);
+window.addEventListener('hashchange', () => {
+ if (panel.open) panel.close();
+ displayMenuTab(location.hash === '#menu' ? 'catalog' : 'home');
+ window.scrollTo({top: 0, behavior: 'instant'});
+});
 
 window.addEventListener('storage',e=>{if(e.key===cartKey||e.key===null){cart=getCart();renderMenu();if(screen==='cart')showCart();if(screen==='checkout'){storeDraft();showCheckout()}}});
 window.addEventListener('storage', event => {

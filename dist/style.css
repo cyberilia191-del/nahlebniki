@@ -14,3 +14,98 @@ form{display:grid;gap:14px}.subhead,fieldset legend{font:700 1.3rem var(--displa
 @media(max-width:690px){.head-inner{height:65px}.head-inner nav,.city{display:none}.brand{font-size:26px}.brand-symbol svg{width:31px;height:31px}.cart-open{margin-left:auto;font-size:.87rem;gap:6px;padding:8px 10px;height:38px}.hero{margin-top:15px;min-height:275px;background-position:55% center}.hero:before{background:linear-gradient(90deg,#100e0ce8,#100e0cbb 31%,#100e0c15 85%)}.hero-copy{padding:22px 19px}.hero h1{font-size:50px}.hero p{font-size:.87rem;max-width:228px}.hero-action{margin-top:13px}.products{grid-template-columns:repeat(2,minmax(0,1fr))}.product-title{display:block}.weight{display:block;margin-top:4px}.photo{aspect-ratio:1.4}.categories{margin:12px -2px 16px}.category{padding-inline:12px}.section-heading h2{font-size:34px}#menu{padding-top:23px}.product h3{font-size:22px}.product p{font-size:.85rem}.checker{width:42px}footer .wrap{flex-wrap:wrap;gap:8px 12px}footer button{padding:0}}
 @media(max-width:480px){.wrap{padding-inline:16px}.products{grid-template-columns:1fr;gap:16px}.photo{aspect-ratio:1.95}.product-title{display:flex}.product h3{font-size:25px}.product-body{padding:15px 16px}.product p{font-size:.94rem}.hero{background-position:54% center}.hero h1{font-size:48px}.category{font-size:.88rem}.weight{margin:0}footer button{margin-left:0}.brand{font-size:24px}.brand-symbol svg{width:28px}.brand{gap:5px}}
 @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}*,*:before,*:after{transition:none!important}}
+
+/* Keep the last row and footer controls above the floating navigation. */
+:root {
+  --nav-bottom: calc(12px + env(safe-area-inset-bottom, 0px));
+  --nav-clearance: calc(5.25rem + var(--nav-bottom));
+}
+html { scroll-padding-bottom: var(--nav-clearance); }
+body { padding-bottom: var(--nav-clearance); }
+.favorite-filter {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  min-height: 44px;
+  padding: 8px 15px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: var(--panel);
+  color: #dad7d1;
+  font-size: .92rem;
+  font-weight: 600;
+}
+.favorite-filter[aria-pressed="true"] {
+  border-color: #ad4a3c;
+  color: #ff9e90;
+  background: #35201d;
+}
+.favorite-filter[aria-pressed="true"] svg,
+.favorite-heart[aria-pressed="true"] svg { fill: currentColor; }
+.favorite-heart {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  width: 44px;
+  height: 44px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: #181715bc;
+  border: 1px solid #ffffff40;
+  color: #fff9f0;
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
+}
+.favorite-heart svg { width: 21px; height: 21px; }
+.favorite-heart[aria-pressed="true"] { color: #ff6c5b; border-color: #ff907eaa; }
+.favorites-empty {
+  text-align: center;
+  padding: 34px 20px;
+  border: 1px solid var(--line);
+  border-radius: 7px;
+  background: var(--panel);
+}
+.favorites-empty i { color: #ff7b6c; font-size: 1.65rem; }
+.favorites-empty h3 { font: 700 1.55rem var(--display); margin: 5px 0; }
+.favorites-empty p { color: var(--muted); }
+.recipe-nav {
+  position: fixed;
+  bottom: var(--nav-bottom);
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 5;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  width: min(18rem, calc(100% - 2rem));
+  padding: 5px;
+  border: 1px solid #ffffff35;
+  border-radius: 32px;
+  background: linear-gradient(160deg, #41403de0, #20201fda);
+  box-shadow: inset 0 1px 0 #ffffff0f, 0 6px 24px #0006;
+  -webkit-backdrop-filter: blur(16px) saturate(130%);
+  backdrop-filter: blur(16px) saturate(130%);
+}
+.recipe-nav button {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  min-height: 49px;
+  padding: 4px 7px;
+  border-radius: 26px;
+  font-size: .82rem;
+  font-weight: 600;
+  line-height: 1.15;
+  color: #e0ded9;
+}
+.recipe-nav button svg { width: 20px; height: 20px; }
+.recipe-nav button[aria-pressed="true"] {
+  color: #fff9ed;
+  background: #ffffff25;
+  box-shadow: inset 0 1px 1px #ffffff25, 0 1px 4px #0003;
+}
+.recipe-nav button[aria-pressed="true"] svg { color: #ff8373; }
+.recipe-nav [data-view="favorites"][aria-pressed="true"] svg { fill: currentColor; }
+body.modal .recipe-nav { display: none; }

@@ -22,11 +22,20 @@
 <div class="hero-action"><span id="hero-add"></span><strong>490 ₽</strong></div>
 </div></section>
 <section id="menu" aria-labelledby="menu-title">
-<div class="section-heading"><h2 id="menu-title">МЕНЮ</h2><div class="rule"></div><span class="checker" aria-hidden="true"></span></div>
+<div class="section-heading"><h2 id="menu-title">МЕНЮ</h2><div class="rule"></div>
+<button class="favorite-filter" id="favorite-filter" data-view="toggle" aria-controls="products" aria-pressed="false"><i data-icon="heart"></i>Избранное</button></div>
 <div id="categories" class="categories" role="group" aria-label="Категории меню"></div>
 <div id="products" class="products"></div>
+<div class="favorites-empty" id="favorites-empty" hidden>
+<i data-icon="heart"></i><h3 id="empty-title">Пока нет избранного</h3>
+<p>Нажмите сердечко на карточке блюда, чтобы сохранить его здесь.</p>
+</div>
 </section></main>
 <footer><div class="wrap"><strong>НАХЛЕБНИКИ</strong><span>Сэндвич-шоп · Смоленск</span><button data-do="info">О демо-заказах</button></div></footer>
+<nav class="recipe-nav" aria-label="Просмотр рецептов">
+<button data-view="all" aria-pressed="true" aria-controls="products"><i data-icon="grid"></i>Все рецепты</button>
+<button data-view="favorites" aria-pressed="false" aria-controls="products"><i data-icon="heart"></i>Избранное</button>
+</nav>
 <dialog id="panel" aria-labelledby="panel-title"><div class="panel-inner"><div class="panel-header"><h2 id="panel-title"></h2><button class="icon-btn" aria-label="Закрыть" data-do="close"><i data-icon="close"></i></button></div><div id="panel-body"></div></div></dialog>
 <div class="sr" role="status" id="status"></div>
 <script src="app.js"></script>

@@ -11,6 +11,7 @@ const dishes = [
   {id:'sauce',category:'Соусы',name:'Спайси-соус',price:60,weight:'40 г',description:'Сливочный соус с чили и копчёной паприкой.'}
 ];
 const shapes = {
+ heart:'<path d="M20.4 4.9a5.3 5.3 0 0 0-7.5 0l-.9.9-.9-.9a5.3 5.3 0 0 0-7.5 7.5L12 21l8.4-8.6a5.3 5.3 0 0 0 0-7.5Z"/>',
  bread:'<path fill="currentColor" stroke="none" d="M1.5 9C.5 5.9 4.8 2.4 10.2 2.3c3.6-.8 10.5 1.2 12 5.5.9 2.4-.2 4.3-2.2 5v6.1c0 1.2-.9 2.1-2 2.1H5c-1.3 0-2.1-.9-2.1-2.2v-6.7C2.1 11.7 1.7 10.4 1.5 9Z"/><path stroke="#151515" stroke-width="2.3" d="m6 7 2.5 3m2.3-4.3 2.7 3.2m2.4-2.1 2 2.3M6 16.8h10.6"/>',
  star:'<path fill="currentColor" stroke="none" d="m12 1.5 3.1 6.4 7 .9-5 5 1.2 6.9-6.3-3.4-6.2 3.4 1.1-6.9-5-5 7-.9z"/>',
  pin:'<path d="M19 10c0 5-7 11-7 11S5 15 5 10a7 7 0 1 1 14 0Z"/><circle cx="12" cy="10" r="2.4"/>',
@@ -37,6 +38,13 @@ function read(key){try{return JSON.parse(localStorage.getItem(key))||{}}catch{re
 function write(key,value){try{localStorage.setItem(key,JSON.stringify(value))}catch{}}
 function getCart(){const saved=read(cartKey);return Object.fromEntries(dishes.filter(d=>Number.isInteger(saved[d.id])&&saved[d.id]>0).map(d=>[d.id,Math.min(saved[d.id],99)]))}
 let cart=getCart(),selected='Всё меню',screen='',draft={};
+const favoritesKey = 'nahlebniki.favorites.v1';
+function readFavorites() {
+ const saved = read(favoritesKey);
+ return new Set(dishes.filter(dish => Array.isArray(saved) && saved.includes(dish.id)).map(dish => dish.id));
+}
+let favorites = readFavorites();
+let favoritesOnly = false;
 const panel=$('#panel'),body=$('#panel-body');
 const price=n=>new Intl.NumberFormat('ru-RU').format(n)+' ₽';
 const total=()=>dishes.reduce((sum,d)=>sum+d.price*(cart[d.id]||0),0);
@@ -44,8 +52,19 @@ const qty=()=>Object.values(cart).reduce((a,b)=>a+b,0);
 function stepper(d){return '<div class="stepper"><button data-do="minus" data-id="'+d.id+'" aria-label="Убрать одну порцию, '+d.name+'">'+icon('minus')+'</button><output aria-label="Количество">'+cart[d.id]+'</output><button data-do="plus" data-id="'+d.id+'" aria-label="Добавить ещё, '+d.name+'" '+(cart[d.id]>=99?'disabled':'')+'>'+icon('plus')+'</button></div>'}
 function addButton(d,hero=false){return cart[d.id]?stepper(d):'<button class="'+(hero?'primary':'add-square')+'" data-do="plus" data-id="'+d.id+'" aria-label="Добавить в корзину, '+d.name+'">'+icon('plus')+(hero?'В корзину':'')+'</button>'}
 function renderCategories(){$('#categories').innerHTML=cats.map(([name,symbol])=>'<button class="category" data-cat="'+name+'" aria-pressed="'+(name===selected)+'">'+icon(symbol)+name+'</button>').join('')}
+function favoriteButton(dish) {
+ return `<button class="favorite-heart" data-favorite="${dish.id}" aria-label="Избранное — ${dish.name}" aria-pressed="${favorites.has(dish.id)}">${icon('heart')}</button>`;
+}
 function renderMenu(){
- $('#products').innerHTML=dishes.filter(d=>selected==='Всё меню'||selected===d.category).map(d=>'<article class="product"><div class="photo"><img src="'+assets[d.id]+'" alt="'+d.name+'" loading="lazy">'+(d.tag?'<span class="label '+(d.tone||'')+'">'+(d.icon?icon(d.icon):'')+d.tag+'</span>':'')+'</div><div class="product-body"><div class="product-title"><h3>'+d.name+'</h3><span class="weight">'+d.weight+'</span></div><p>'+d.description+'</p><div class="buy-row"><strong class="price">'+price(d.price)+'</strong>'+addButton(d)+'</div></div></article>').join('');
+ const visible = dishes.filter(dish =>
+   (selected === 'Всё меню' || selected === dish.category) && (!favoritesOnly || favorites.has(dish.id))
+ );
+ for (const control of document.querySelectorAll('[data-view]')) {
+   control.setAttribute('aria-pressed', control.dataset.view === 'all' ? !favoritesOnly : favoritesOnly);
+ }
+ $('#favorites-empty').hidden = visible.length > 0;
+ $('#empty-title').textContent = favorites.size ? 'В этой категории нет избранного' : 'Пока нет избранного';
+ $('#products').innerHTML=visible.map(d=>'<article class="product"><div class="photo"><img src="'+assets[d.id]+'" alt="'+d.name+'" loading="lazy">'+(d.tag?'<span class="label '+(d.tone||'')+'">'+(d.icon?icon(d.icon):'')+d.tag+'</span>':'')+favoriteButton(d)+'</div><div class="product-body"><div class="product-title"><h3>'+d.name+'</h3><span class="weight">'+d.weight+'</span></div><p>'+d.description+'</p><div class="buy-row"><strong class="price">'+price(d.price)+'</strong>'+addButton(d)+'</div></div></article>').join('');
  $('#hero-add').innerHTML=addButton(dishes[0],true);$('#cart-count').textContent=qty();
 }
 function openPanel(title,view){screen=view;$('#panel-title').textContent=title;if(!panel.open){panel.showModal();document.body.classList.add('modal')}panel.scrollTop=0}
@@ -97,6 +116,30 @@ function changeCart(action,id,button){
  replacement?.focus({preventScroll:true});
 }
 document.addEventListener('click',e=>{
+ const filter = e.target.closest('[data-view]');
+ if (filter) {
+   favoritesOnly = filter.dataset.view === 'toggle' ? !favoritesOnly : filter.dataset.view === 'favorites';
+   renderMenu();
+   if (filter.closest('.recipe-nav')) $('#menu').scrollIntoView();
+   return;
+ }
+ const heart = e.target.closest('[data-favorite]');
+ if (heart) {
+   const id = heart.dataset.favorite;
+   const hearts = Array.from(document.querySelectorAll('[data-favorite]'));
+   const index = hearts.indexOf(heart);
+   const wasSaved = favorites.has(id);
+   if (wasSaved) favorites.delete(id);
+   else favorites.add(id);
+   write(favoritesKey, Array.from(favorites));
+   renderMenu();
+   const remaining = document.querySelectorAll('[data-favorite]');
+   const next = remaining[Math.min(index, remaining.length - 1)] || $('#favorite-filter');
+   next.focus({preventScroll:true});
+   const dish = dishes.find(item => item.id === id);
+   $('#status').textContent = dish.name + (wasSaved ? ' — убрано из избранного' : ' — добавлено в избранное');
+   return;
+ }
  const cat=e.target.closest('[data-cat]');if(cat){selected=cat.dataset.cat;renderCategories();renderMenu();$('#categories [aria-pressed=true]').focus({preventScroll:true});return}
  const button=e.target.closest('[data-do]');if(!button)return;
  const action=button.dataset.do;
@@ -113,4 +156,10 @@ panel.addEventListener('click',e=>{if(e.target===panel&&e.clientX<panel.getBound
 panel.addEventListener('cancel',storeDraft);
 panel.addEventListener('close',()=>{screen='';document.body.classList.remove('modal')});
 window.addEventListener('storage',e=>{if(e.key===cartKey||e.key===null){cart=getCart();renderMenu();if(screen==='cart')showCart();if(screen==='checkout'){storeDraft();showCheckout()}}});
+window.addEventListener('storage', event => {
+ if (event.key === favoritesKey || event.key === null) {
+   favorites = readFavorites();
+   renderMenu();
+ }
+});
 renderCategories();renderMenu();

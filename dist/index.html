@@ -29,6 +29,20 @@
   <button data-do="home-about"><i data-icon="sandwich"></i>О НАХЛЕБНИКАХ</button>
 </div>
 <a class="browse-menu" href="#menu" data-do="all-dishes">Перейти в каталог</a>
+<button type="button" id="reveal-hint" class="reveal-hint" aria-expanded="false" aria-controls="home-story">
+  <span class="pull-grip" aria-hidden="true"></span><span id="reveal-label">Потяни вверх, чтобы увидеть больше</span>
+</button>
+<div id="home-story" class="story-reveal" aria-hidden="true">
+  <div class="story-clip">
+    <section class="shop-story" aria-labelledby="story-title">
+      <div class="story-copy"><h2 id="story-title">О сэндвич-шопе</h2>
+        <p>Фокаччу печём сами, щедро кладём начинку и подаём к сэндвичам фирменную содовую. В зале играют в кикер и вспоминают девяностые за аркадными автоматами.</p>
+        <p class="story-location"><i data-icon="pin"></i>Смоленск, ул. Дзержинского, 4</p>
+      </div>
+      <img src="assets/guide-sandwich.jpg" width="460" height="613" alt="Сэндвич на фокачче из смоленского гастрогида">
+    </section>
+  </div>
+</div>
 </section>
 <section id="menu" hidden tabindex="-1" aria-labelledby="menu-title">
 <div class="section-heading"><h2 id="menu-title">КАТАЛОГ</h2><div class="rule"></div>

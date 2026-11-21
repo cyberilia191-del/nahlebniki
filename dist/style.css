@@ -310,3 +310,43 @@ dialog.empty-cart-screen .panel-inner {
  .quick-tiles button { padding:8px;gap:6px;font-size:.85rem; }
  .quick-tiles i { width:26px; }
 }
+
+.home-actions {
+  transform: translateY(var(--pull-offset, 0px));
+  transition: transform 320ms cubic-bezier(.18,.88,.28,1.12);
+}
+.reveal-hint {
+  display: grid; justify-items: center; gap: 8px; width: 100%; min-height: 54px;
+  padding: 8px 12px 14px; color: var(--muted); font-size: .9rem;
+}
+.pull-grip { width: 33px; height: 4px; background: #7e716a; border-radius: 3px; }
+.reveal-hint:hover, .home-actions.is-pulling .reveal-hint { color: var(--white); }
+.reveal-hint:hover .pull-grip, .home-actions.is-pulling .pull-grip { background: var(--red); }
+.story-reveal {
+  display: grid; grid-template-rows: var(--pull-row, 0fr);
+  opacity: var(--pull-opacity, 0);
+  transition: grid-template-rows 340ms cubic-bezier(.2,.8,.3,1), opacity 220ms ease;
+}
+.home-actions.story-open .story-reveal { grid-template-rows: 1fr; opacity: 1; }
+.home-actions.is-pulling, .home-actions.is-pulling .story-reveal { transition: none; }
+.story-clip { min-height: 0; overflow: hidden; }
+.shop-story {
+  display: grid; grid-template-columns: 1.2fr 1fr; overflow: hidden;
+  margin-bottom: 20px; border: 1px solid var(--line); border-radius: 12px; background: #201e1d;
+}
+.story-copy { align-self: center; padding: clamp(18px,3vw,40px); }
+.story-copy h2 { margin-bottom: 12px; font: 700 clamp(1.8rem,3vw,3rem)/1.1 var(--display); }
+.story-copy p { max-width: 48ch; color: #dedad3; }
+.story-copy .story-location { display: flex; gap: 7px; align-items: center; margin-top: 17px; font-size: .93rem; }
+.story-location i { color: var(--red); }
+.shop-story img { width: 100%; height: clamp(220px,23vw,320px); object-fit: cover; }
+@media(max-width:640px) {
+  .shop-story { grid-template-columns: 1fr; }
+  .shop-story img { height: 200px; object-position: center 53%; }
+}
+@media(prefers-reduced-motion:reduce) {
+  .home-actions, .story-reveal { transition: none; }
+}
+
+/* At the reveal boundary, retain native scrolling toward the top and pinch zoom. */
+.home-actions.pull-ready { touch-action: pan-x pan-up pinch-zoom; }

@@ -488,3 +488,80 @@ window.addEventListener('storage', event => {
 });
 renderCategories();renderMenu();
 refreshGreeting();
+
+function enableHomeReveal() {
+ const home = $('#home-actions');
+ const hint = $('#reveal-hint');
+ const story = $('#home-story');
+ const label = $('#reveal-label');
+ const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)');
+ const threshold = 64;
+ let drag = null;
+
+ function updateReady() {
+   const edge = hint.getBoundingClientRect().bottom;
+   home.classList.toggle('pull-ready', !home.hidden && !panel.open && !home.classList.contains('story-open') &&
+     edge > 0 && edge <= appNav.getBoundingClientRect().top + 1);
+ }
+ function setOpen(open) {
+   home.classList.toggle('story-open', open);
+   updateReady();
+   hint.setAttribute('aria-expanded', String(open));
+   story.setAttribute('aria-hidden', String(!open));
+   label.textContent = open ? 'Свернуть блок' : 'Потяни вверх, чтобы увидеть больше';
+   if (open) {
+     const distance = story.getBoundingClientRect().top - window.innerHeight * .48;
+     if (distance > 0) window.scrollBy({top:distance, behavior:reducedMotion.matches ? 'instant' : 'smooth'});
+   }
+ }
+ function resetDrag() {
+   drag = null;
+   home.classList.remove('is-pulling');
+   for (const key of ['--pull-offset','--pull-row','--pull-opacity']) home.style.removeProperty(key);
+ }
+ function move(event) {
+   if (!drag) return;
+   const touch = event.touches[0];
+   if (event.touches.length !== 1 || touch.identifier !== drag.id) {
+     resetDrag();
+     return;
+   }
+   const dy = drag.y - touch.clientY;
+   const dx = Math.abs(touch.clientX - drag.x);
+   if (!drag.active) {
+     if (dy < 0 || dx > Math.abs(dy)) { resetDrag(); return; }
+     if (dy === 0) return;
+     drag.active = true;
+     home.classList.add('is-pulling');
+   }
+   if (event.cancelable) event.preventDefault();
+   if (reducedMotion.matches) return;
+   const amount = 1 - Math.exp(-Math.max(0, dy) / threshold);
+   home.style.setProperty('--pull-offset', (-42 * amount)+'px');
+   home.style.setProperty('--pull-row', (.5 * amount)+'fr');
+   home.style.setProperty('--pull-opacity', String(amount));
+ }
+ window.addEventListener('scroll', updateReady, {passive:true});
+ new ResizeObserver(updateReady).observe(home);
+ window.addEventListener('resize', updateReady);
+ home.addEventListener('touchstart', event => {
+   if (drag) resetDrag();
+   if (menuTab !== 'home' || panel.open || home.classList.contains('story-open') || event.touches.length !== 1) return;
+   const edge = hint.getBoundingClientRect().bottom;
+   if (edge <= 0 || edge > appNav.getBoundingClientRect().top + 1) return;
+   const touch = event.touches[0];
+   drag = {id:touch.identifier, x:touch.clientX, y:touch.clientY, active:false};
+ }, {passive:true});
+ home.addEventListener('touchmove', move, {passive:false});
+ document.addEventListener('touchend', event => {
+   if (!drag) return;
+   const touch = event.changedTouches[0];
+   const open = drag.active && touch.identifier === drag.id && drag.y - touch.clientY >= threshold;
+   if (drag.active && event.cancelable) event.preventDefault();
+   resetDrag();
+   if (open) setOpen(true);
+ }, {passive:false});
+ document.addEventListener('touchcancel', resetDrag, {passive:true});
+ hint.addEventListener('click', () => setOpen(!home.classList.contains('story-open')));
+}
+enableHomeReveal();

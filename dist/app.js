@@ -92,6 +92,7 @@ function openPanel(title, view) {
  screen = view;
  $('#panel-title').textContent = title;
  panel.dataset.screen = view;
+ panel.classList.toggle('empty-cart-screen', view === 'cart' && qty() === 0);
  const section = view.startsWith('profile') ? 'profile' : view;
  const withNav = ['cart', 'pickup', 'profile'].includes(section);
  panel.classList.toggle('with-nav', withNav);
@@ -123,7 +124,10 @@ function showPickup() {
 }
 function showCart(){
  openPanel('Корзина','cart');
- if(!qty()){body.innerHTML='<div class="empty">'+icon('bag')+'<h3>Корзина пока пуста</h3><p class="panel-copy">Добавьте блюдо из меню.</p><button class="primary" data-do="menu">К меню</button></div>';return}
+ if (!qty()) {
+   body.replaceChildren($('#empty-cart-content').content.cloneNode(true));
+   return;
+ }
  body.innerHTML=dishes.filter(d=>cart[d.id]).map(d=>'<div class="cart-row"><img src="'+assets[d.id]+'" alt=""><div><h3>'+d.name+'</h3>'+stepper(d)+'</div><div class="row-end"><strong>'+price(d.price*cart[d.id])+'</strong><button class="remove" data-do="remove" data-id="'+d.id+'" aria-label="Удалить '+d.name+'">'+icon('trash')+'</button></div></div>').join('')+'<div class="total">Итого<strong>'+price(total())+'</strong></div><button class="primary full" data-do="checkout">Перейти к оформлению</button><p class="note">Демо-заказ · Без списания средств</p>';
 }
 function showInfo(){openPanel('Доставка и самовывоз','info');body.innerHTML='<div class="info"><section><h3>'+icon('truck')+'Доставка по Смоленску</h3><p class="panel-copy">Выберите день и время, затем укажите улицу, дом и квартиру. В демо доставка бесплатная.</p></section><section><h3>'+icon('bag')+'Самовывоз</h3><p class="panel-copy">Выберите время получения в сэндвич-шопе «Нахлебники» в Смоленске.</p></section><section><h3>Демонстрационный режим</h3><p class="panel-copy">Заказ оформляется только на этом устройстве. Деньги не списываются, а ресторан не получает заявку.</p></section></div><button class="primary full" data-do="menu">Перейти в меню</button>'}

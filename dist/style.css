@@ -191,3 +191,16 @@ dialog[data-screen="profile"] #panel-title {
   .city svg { width: 11px; height: 11px; }
   .cart-open { grid-area: 1/2/3/3; }
 }
+
+.about-shop { display: grid; gap: 18px; font-size: 1rem; line-height: 1.55; }
+.about-address { color: var(--muted); font-size: .93rem; }
+.about-photo { margin: 0; }
+.about-photo img { display: block; width: 100%; height: auto; border-radius: 14px; }
+.about-founder {
+  display: flex; align-items: center; gap: 14px; padding: 16px;
+  background: var(--panel); border: 1px solid var(--line); border-radius: 14px;
+}
+.about-founder img { flex: none; border-radius: 50%; }
+.about-founder h3 { font: 700 1.35rem/1.2 var(--display); margin-bottom: 5px; }
+.about-founder p, .about-credit { font-size: .9rem; color: var(--muted); }
+.about-credit a { color: var(--white); text-decoration: underline; text-underline-offset: 3px; }

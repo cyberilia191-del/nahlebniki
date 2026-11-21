@@ -170,7 +170,7 @@ function showProfile() {
  <section><h3>Настройки</h3><div class="profile-rows">
  ${profileRow('Личные данные','person','personal')}${profileRow('Адреса','pin','addresses')}</div></section>
  <section><h3>Соцсети и информация</h3><div class="profile-rows">
- ${profileRow('ВКонтакте','chat',null,shopLinks.vk)}${profileRow('О НАХЛЕБНИКАХ','bread',null,shopLinks.about)}
+ ${profileRow('ВКонтакте','chat',null,shopLinks.vk)}${profileRow('О НАХЛЕБНИКАХ','bread','about')}
  ${profileRow('Политика конфиденциальности','shield',null,shopLinks.privacy)}</div></section></div>`;
  const box = $('#last-order-body');
  if (!lines.length) {
@@ -210,6 +210,12 @@ function repeatOrder() {
    notice.textContent = 'При повторе заказа: '+skipped.join('. ')+'.';
    body.prepend(notice);
  }
+}
+function showAbout() {
+ openPanel('О НАХЛЕБНИКАХ', 'profile-about');
+ body.innerHTML = backToProfile;
+ body.append($('#about-content').content.cloneNode(true));
+ body.querySelector('.about-source').href = shopLinks.about;
 }
 function showCare() {
  openPanel('Служба заботы', 'profile-care');
@@ -362,6 +368,7 @@ document.addEventListener('click',e=>{
  if(action==='profile')showProfile();
  if(action==='personal')showPersonal();
  if(action==='care')showCare();
+ if(action==='about')showAbout();
  if(action==='addresses')showAddresses();
  if(action==='new-address')editAddress();
  if(action==='repeat')repeatOrder();

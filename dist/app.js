@@ -11,6 +11,8 @@ const dishes = [
   {id:'sauce',category:'Соусы',name:'Спайси-соус',price:60,weight:'40 г',description:'Сливочный соус с чили и копчёной паприкой.'}
 ];
 const shapes = {
+ search:'<circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 5 5"/>',
+ megaphone:'<path d="M3 10v4l12 3V7zM15 7l5-3v16l-5-3M6 15l2 6h3l-2-5"/>',
  chevron:'<path d="m9 5 7 7-7 7"/>',
  repeat:'<path d="M4 10a8 8 0 1 1 1 7M4 4v6h6"/>',
  support:'<path d="M4 13v-2a8 8 0 0 1 16 0v6c0 3-3 4-6 4"/><rect x="2" y="11" width="5" height="7" rx="2"/><rect x="17" y="11" width="5" height="7" rx="2"/>',
@@ -59,7 +61,7 @@ const price=n=>new Intl.NumberFormat('ru-RU').format(n)+' ₽';
 const total=()=>dishes.reduce((sum,d)=>sum+d.price*(cart[d.id]||0),0);
 const qty=()=>Object.values(cart).reduce((a,b)=>a+b,0);
 function stepper(d){return '<div class="stepper"><button data-do="minus" data-id="'+d.id+'" aria-label="Убрать одну порцию, '+d.name+'">'+icon('minus')+'</button><output aria-label="Количество">'+cart[d.id]+'</output><button data-do="plus" data-id="'+d.id+'" aria-label="Добавить ещё, '+d.name+'" '+(cart[d.id]>=99?'disabled':'')+'>'+icon('plus')+'</button></div>'}
-function addButton(d,hero=false){return cart[d.id]?stepper(d):'<button class="'+(hero?'primary':'add-square')+'" data-do="plus" data-id="'+d.id+'" aria-label="Добавить в корзину, '+d.name+'">'+icon('plus')+(hero?'В корзину':'')+'</button>'}
+function addButton(d){return cart[d.id]?stepper(d):'<button class="add-square" data-do="plus" data-id="'+d.id+'" aria-label="Добавить в корзину, '+d.name+'">'+icon('plus')+'</button>'}
 function renderCategories(){$('#categories').innerHTML=cats.map(([name,symbol])=>'<button class="category" data-cat="'+name+'" aria-pressed="'+(name===selected)+'">'+icon(symbol)+name+'</button>').join('')}
 function favoriteButton(dish) {
  return `<button class="favorite-heart" data-favorite="${dish.id}" aria-label="Избранное — ${dish.name}" aria-pressed="${favorites.has(dish.id)}">${icon('heart')}</button>`;
@@ -72,7 +74,8 @@ function renderMenu(){
  $('#favorites-empty').hidden = visible.length > 0;
  $('#empty-title').textContent = favorites.size ? 'В этой категории нет избранного' : 'Пока нет избранного';
  $('#products').innerHTML=visible.map(d=>'<article class="product"><div class="photo"><img src="'+assets[d.id]+'" alt="'+d.name+'" loading="lazy">'+(d.tag?'<span class="label '+(d.tone||'')+'">'+(d.icon?icon(d.icon):'')+d.tag+'</span>':'')+favoriteButton(d)+'</div><div class="product-body"><div class="product-title"><h3>'+d.name+'</h3><span class="weight">'+d.weight+'</span></div><p>'+d.description+'</p><div class="buy-row"><strong class="price">'+price(d.price)+'</strong>'+addButton(d)+'</div></div></article>').join('');
- $('#hero-add').innerHTML=addButton(dishes[0],true);$('#cart-count').textContent=qty();
+ $('#cart-count').textContent=qty();
+ if (screen === 'home-search') renderSearchResults();
 }
 const appNav = $('.app-nav');
 const tabButtons = Array.from(appNav.querySelectorAll('[data-tab]'));
@@ -85,16 +88,14 @@ function selectTab(name) {
  appNav.style.setProperty('--tab-index', index);
  appNav.classList.toggle('map-active', name === 'pickup');
 }
-function currentMenuTab() {
- return $('#menu').getBoundingClientRect().top <= 80 ? 'catalog' : 'home';
-}
+let menuTab = location.hash === '#menu' ? 'catalog' : 'home';
 function openPanel(title, view) {
  screen = view;
  $('#panel-title').textContent = title;
  panel.dataset.screen = view;
  panel.classList.toggle('empty-cart-screen', view === 'cart' && qty() === 0);
- const section = view.startsWith('profile') ? 'profile' : view;
- const withNav = ['cart', 'pickup', 'profile'].includes(section);
+ const section = view.split('-')[0];
+ const withNav = ['cart', 'pickup', 'profile', 'home'].includes(section);
  panel.classList.toggle('with-nav', withNav);
  if (withNav) {
    if (appNav.parentElement !== panel) panel.append(appNav);
@@ -108,10 +109,55 @@ function openPanel(title, view) {
  panel.scrollTop = 0;
 }
 function openMenuTab(name) {
+ menuTab = name;
  if (panel.open) panel.close();
  const y = name === 'catalog' ? window.scrollY + $('#menu').getBoundingClientRect().top - 12 : 0;
  window.scrollTo({top: y, behavior: 'instant'});
  selectTab(name);
+}
+function refreshGreeting() {
+ const {name} = read(contactKey);
+ $('#greeting').textContent = typeof name === 'string' && name.trim() ? 'Привет, '+name.trim()+'!' : 'Привет!';
+}
+function homeMenu(category, browse = false) {
+ selected = category;
+ favoritesOnly = false;
+ renderCategories();
+ renderMenu();
+ if (!browse) {
+   openMenuTab('catalog');
+   return;
+ }
+ menuTab = 'home';
+ selectTab('home');
+ $('#menu').focus({preventScroll:true});
+ $('#menu').scrollIntoView({behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'instant' : 'smooth'});
+}
+function showSearch() {
+ openPanel('Поиск по меню', 'home-search');
+ body.innerHTML = `<label class="dish-query">${icon('search')}<input id="dish-query" type="search" placeholder="Найти блюдо" aria-label="Найти блюдо" autocomplete="off"></label>
+ <p id="search-count" class="sr" role="status"></p><div id="search-results"></div>`;
+ renderSearchResults();
+ $('#dish-query').focus();
+}
+function normalized(text) {
+ return text.toLocaleLowerCase('ru-RU').replace(/ё/g, 'е').trim();
+}
+function renderSearchResults() {
+ const terms = normalized($('#dish-query').value).split(/\s+/);
+ const matches = dishes.filter(dish => {
+   const text = normalized(dish.name+' '+dish.description+' '+dish.category);
+   return terms.every(term => text.includes(term));
+ });
+ $('#search-count').textContent = 'Найдено блюд: '+matches.length;
+ $('#search-results').innerHTML = matches.length ? matches.map(dish =>
+   `<article class="search-result"><img src="${assets[dish.id]}" alt="" width="72" height="72"><div>
+    <h3>${dish.name}</h3><p>${dish.description}</p><div class="buy-row"><strong>${price(dish.price)}</strong>${addButton(dish)}</div></div></article>`
+ ).join('') : '<p class="no-matches">Блюд по этому запросу нет. Попробуйте другое название или ингредиент.</p>';
+}
+function showNews() {
+ openPanel('Акции и новости', 'home-news');
+ body.innerHTML = '<div class="news-empty">'+icon('megaphone')+'<p>Здесь пока нет акций и новостей</p><button class="primary" data-do="home">На главную</button></div>';
 }
 function showPickup() {
  openPanel('Где забрать заказ', 'pickup');
@@ -215,9 +261,9 @@ function repeatOrder() {
    body.prepend(notice);
  }
 }
-function showAbout() {
- openPanel('О НАХЛЕБНИКАХ', 'profile-about');
- body.innerHTML = backToProfile;
+function showAbout(fromHome = false) {
+ openPanel('О НАХЛЕБНИКАХ', fromHome ? 'home-about' : 'profile-about');
+ body.innerHTML = fromHome ? '' : backToProfile;
  body.append($('#about-content').content.cloneNode(true));
  body.querySelector('.about-source').href = shopLinks.about;
 }
@@ -289,6 +335,7 @@ function saveContacts(form) {
  const contacts = {};
  for (const key of ['name', 'phone', 'email']) contacts[key] = form.elements[key].value.trim();
  write(contactKey, contacts);
+ refreshGreeting();
  return contacts;
 }
 function showCheckout(){
@@ -322,7 +369,7 @@ function confirmOrder(f){
  rows.forEach(([label,value])=>{const dt=document.createElement('dt'),dd=document.createElement('dd');dt.textContent=label;dd.textContent=value;$('#summary').append(dt,dd)});
 }
 function changeCart(action,id,button){
- const place=button.closest('#panel-body')?body:button.closest('#hero-add')?$('#hero-add'):$('#products');
+ const place=button.closest('#panel-body')?body:$('#products');
  const dish=dishes.find(d=>d.id===id);if(!dish)return;
  const next=action==='remove'?0:Math.max(0,Math.min(99,(cart[id]||0)+(action==='plus'?1:-1)));if(next)cart[id]=next;else delete cart[id];
  write(cartKey,cart);renderMenu();if(screen==='cart')showCart();
@@ -372,6 +419,14 @@ document.addEventListener('click',e=>{
  if(action==='profile')showProfile();
  if(action==='personal')showPersonal();
  if(action==='care')showCare();
+ if(action==='search')showSearch();
+ if(action==='sandwiches')homeMenu('Сэндвичи');
+ if(action==='all-dishes')homeMenu('Всё меню');
+ if(action==='pickup-location')showPickup();
+ if(action==='news')showNews();
+ if(action==='home-about')showAbout(true);
+ if(action==='browse'){e.preventDefault();homeMenu('Всё меню',true)}
+ if(action==='home')openMenuTab('home');
  if(action==='about')showAbout();
  if(action==='addresses')showAddresses();
  if(action==='new-address')editAddress();
@@ -382,7 +437,7 @@ document.addEventListener('click',e=>{
  if(action==='menu')openMenuTab('catalog');
 });
 document.addEventListener('change',e=>{if(e.target.id==='saved-address' && e.target.value){$('#address').value=e.target.value;$('#address').setCustomValidity('')}if(e.target.name==='mode')updateMode();if(e.target.id==='day')updateTimes();if(e.target.id==='time')e.target.setCustomValidity('')});
-document.addEventListener('input',e=>{if(e.target.id==='address') $('#saved-address').value=e.target.value; if (['checkout','profile','edit-address'].includes(e.target.form?.id)) e.target.setCustomValidity(''); if(e.target.form?.id==='profile') $('.profile-feedback').textContent='';});
+document.addEventListener('input',e=>{if(e.target.id==='dish-query')renderSearchResults(); if(e.target.id==='address') $('#saved-address').value=e.target.value; if (['checkout','profile','edit-address'].includes(e.target.form?.id)) e.target.setCustomValidity(''); if(e.target.form?.id==='profile') $('.profile-feedback').textContent='';});
 document.addEventListener('submit', e => {
  const form = e.target;
  e.preventDefault();
@@ -409,18 +464,17 @@ panel.addEventListener('close', () => {
  document.body.classList.remove('modal');
  document.body.insertBefore(appNav, panel);
  appNav.hidden = false;
- selectTab(currentMenuTab());
+ selectTab(menuTab);
 });
-const menuObserver = new IntersectionObserver(() => {
- if (!panel.open) selectTab(currentMenuTab());
-}, {rootMargin: '-80px 0px 0px 0px', threshold: 0});
-menuObserver.observe($('.hero'));
+selectTab(menuTab);
 
 window.addEventListener('storage',e=>{if(e.key===cartKey||e.key===null){cart=getCart();renderMenu();if(screen==='cart')showCart();if(screen==='checkout'){storeDraft();showCheckout()}}});
 window.addEventListener('storage', event => {
+ if (event.key === contactKey || event.key === null) refreshGreeting();
  if (event.key === favoritesKey || event.key === null) {
    favorites = readFavorites();
    renderMenu();
  }
 });
 renderCategories();renderMenu();
+refreshGreeting();

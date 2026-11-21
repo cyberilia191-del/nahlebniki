@@ -9,18 +9,28 @@
 </head>
 <body>
 <header class="top"><div class="wrap head-inner">
-<a class="brand" href="#top" aria-label="Нахлебники, в начало"><span class="brand-symbol" data-icon="bread"></span><span>НАХЛЕБНИКИ</span></a>
+<a class="brand" href="#top" data-do="home" aria-label="Нахлебники, в начало"><span class="brand-symbol" data-icon="bread"></span><span>НАХЛЕБНИКИ</span></a>
 <span class="city"><i data-icon="pin"></i> Смоленск</span>
 <button class="cart-open" data-do="cart"><i data-icon="bag"></i><span>Корзина</span><b id="cart-count">0</b></button>
 </div></header>
 <main id="top" class="wrap">
-<section class="hero" aria-labelledby="feature-title">
-<div class="hero-copy"><span class="feature-tag"><i data-icon="star"></i> ХИТ МЕНЮ</span>
-<h1 id="feature-title">ПАСТРАМИ<br>НА ГРИЛЕ</h1>
-<p>Томлёная говядина, чеддер и огурчики<br class="wide"> на хрустящем хлебе.</p>
-<div class="hero-action"><span id="hero-add"></span><strong>490 ₽</strong></div>
-</div></section>
-<section id="menu" aria-labelledby="menu-title">
+<section id="home-actions" class="home-actions" aria-labelledby="home-title">
+<div class="home-heading">
+  <div><p id="greeting">Привет!</p><h1 id="home-title">Что сегодня на хлебе?</h1></div>
+  <button class="search-launch" data-do="search"><i data-icon="search"></i>Найти блюдо</button>
+</div>
+<button class="sandwich-feature" data-do="sandwiches" aria-label="Хочу сэндвич">
+  <span>Хочу<br>сэндвич</span><img src="assets/plush-sandwich.webp" width="800" height="800" alt="">
+</button>
+<div class="quick-tiles">
+  <button data-do="all-dishes"><i data-icon="grid"></i>Всё меню</button>
+  <button data-do="pickup-location"><i data-icon="map"></i>Где нас найти</button>
+  <button data-do="news"><i data-icon="megaphone"></i>Акции и новости</button>
+  <button data-do="home-about"><i data-icon="sandwich"></i>О НАХЛЕБНИКАХ</button>
+</div>
+<a class="browse-menu" href="#menu" data-do="browse">Смотреть всё меню ↓</a>
+</section>
+<section id="menu" tabindex="-1" aria-labelledby="menu-title">
 <div class="section-heading"><h2 id="menu-title">МЕНЮ</h2><div class="rule"></div>
 <button class="favorite-filter" id="favorite-filter" data-view="toggle" aria-controls="products" aria-pressed="false"><i data-icon="heart"></i>Избранное</button></div>
 <div id="categories" class="categories" role="group" aria-label="Категории меню"></div>

@@ -6,7 +6,7 @@
 <meta name="theme-color" content="#ed392e">
 <link rel="icon" href="data:,">
 <title>НАХЛЕБНИКИ — сэндвич-шоп в Смоленске</title>
-<link rel="stylesheet" href="style.css?v=menu11">
+<link rel="stylesheet" href="style.css?v=club12">
 </head>
 <body class="home-view">
 <header class="masthead"><div class="mast-inner">
@@ -14,12 +14,19 @@
   <nav class="main-links" aria-label="Основная навигация">
     <a href="#menu" class="menu-link" data-do="menu"><i data-icon="grid"></i>Каталог</a>
     <button data-do="cart"><i data-icon="bag"></i><span>Корзина</span><b id="cart-count" hidden>0</b></button>
-    <button data-do="profile"><i data-icon="person"></i><span>Профиль</span></button>
+    <button data-do="profile" class="nav-profile"><i data-icon="person"></i><span>Профиль</span></button>
   </nav>
 </div></header>
 <main>
 <div id="home-actions">
   <section class="hero" aria-labelledby="hero-title">
+    <nav class="hero-actions" aria-label="Личный кабинет">
+      <button class="hero-icon" data-do="profile" aria-label="Профиль"><i data-icon="avatar"></i></button>
+      <div class="hero-account">
+        <button class="bonus-chip" data-club="club" aria-label="Клуб НАХЛЕБНИКОВ, демо-баланс"><strong id="cover-balance">90</strong><i data-icon="gift"></i><small>Демо</small></button>
+        <button class="hero-icon bell-button" data-club="notifications" aria-label="Уведомления"><i data-icon="bell"></i><span id="unread-dot" hidden></span></button>
+      </div>
+    </nav>
     <div class="poster">
       <div class="poster-kicker"><b aria-hidden="true"></b>Сэндвич-шоп в Смоленске<b aria-hidden="true"></b></div>
       <h1 id="hero-title">НАХЛЕБНИКИ</h1>
@@ -68,7 +75,8 @@
 <div class="about-founder"><img src="assets/guide-founder.png" width="64" height="64" alt="Портрет Сабита Гусейнова"><div><h3>Сабит Гусейнов</h3><p>Основатель «Нахлебников» и ресторана «Нега».</p></div></div>
 <p class="about-credit">Рассказ подготовлен по материалу с фотографиями из смоленского гастрогида. <a class="about-source" target="_blank" rel="noopener noreferrer">«Куда идти за вкусным вау-эффектом»</a></p>
 </article></template>
-<dialog id="panel" aria-labelledby="panel-title"><div class="panel-inner"><div class="panel-header"><h2 id="panel-title"></h2><button class="icon-btn" aria-label="Закрыть" data-do="close"><i data-icon="close"></i></button></div><div id="panel-body"></div></div></dialog>
+<dialog id="panel" aria-labelledby="panel-title"><div class="panel-inner"><div class="panel-header"><button type="button" class="club-back" data-club="back" hidden><i data-icon="back"></i>Назад</button><h2 id="panel-title"></h2><button class="icon-btn" aria-label="Закрыть" data-do="close"><i data-icon="close"></i></button></div><div id="panel-body"></div></div></dialog>
 <div class="sr" role="status" id="status"></div>
-<script src="app.js?v=menu11"></script>
+<script src="app.js?v=club12"></script>
+<script src="club.js?v=club12"></script>
 </body></html>

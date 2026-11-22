@@ -11,6 +11,11 @@ const dishes = [
   {id:'sauce',category:'Соусы',name:'Спайси-соус',price:60,weight:'40 г',description:'Сливочный соус с чили и копчёной паприкой.'}
 ];
 const shapes = {
+ avatar:'<circle cx="12" cy="7" r="4.2" fill="currentColor" stroke="none"/><path d="M3 21v-2c0-4 4-7 9-7s9 3 9 7v2z" fill="currentColor" stroke="none"/>',
+ gift:'<rect x="3" y="8" width="18" height="4" rx="1"/><path d="M5 12v8h14v-8M12 8v12m0-12C8 8 5 7 6 4s5-1 6 4c1-5 5-7 6-4s-2 4-6 4Z"/>',
+ bell:'<path d="M4 17c2-2 2-4 2-7a6 6 0 0 1 12 0c0 3 0 5 2 7l.5 1h-17zM10 21a3 3 0 0 0 4 0M12 3V2"/>',
+ trophy:'<path d="M7 4h10v5a5 5 0 0 1-10 0zM7 6H3v2c0 3 2 4 5 4m9-6h4v2c0 3-2 4-5 4M12 14v5m-4 2h8"/>',
+ lock:'<rect x="5" y="10" width="14" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3m-4 5v2"/>',
  down:'<path d="M12 3v17m-7-7 7 7 7-7"/>',
  search:'<circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 5 5"/>',
  megaphone:'<path d="M3 10v4l12 3V7zM15 7l5-3v16l-5-3M6 15l2 6h3l-2-5"/>',
@@ -52,6 +57,7 @@ const $=s=>document.querySelector(s);
 const cartKey='nahlebniki.cart.v1',contactKey='nahlebniki.contact.v1';
 function read(key){try{return JSON.parse(localStorage.getItem(key))||{}}catch{return {}}}
 function write(key,value){try{localStorage.setItem(key,JSON.stringify(value))}catch{}}
+function newLocalId() { return crypto.getRandomValues(new Uint32Array(4)).join('-'); }
 function getCart(){const saved=read(cartKey);return Object.fromEntries(dishes.filter(d=>Number.isInteger(saved[d.id])&&saved[d.id]>0).map(d=>[d.id,Math.min(saved[d.id],99)]))}
 let cart=getCart(),screen='',draft={};
 const favoritesKey = 'nahlebniki.favorites.v1';
@@ -118,6 +124,7 @@ function openPanel(title, view) {
   screen = view;
   $('#panel-title').textContent = title;
   panel.dataset.screen = view;
+  $('.club-back').hidden = !view.startsWith('club');
   if (!panel.open) {
     panel.showModal();
     document.body.classList.add('modal');
@@ -228,7 +235,7 @@ function measureBars() {
   updateRailControls();
 }
 const barObserver = new ResizeObserver(measureBars);
-barObserver.observe($('.masthead'));
+barObserver.observe($('.masthead'), {box:'border-box'});
 barObserver.observe($('.category-bar'));
 window.addEventListener('resize', measureBars);
 history.scrollRestoration = 'manual';
@@ -457,11 +464,13 @@ function confirmOrder(f){
  if(!slots(data.day).includes(data.time)){updateTimes();$('#time').setCustomValidity('Выберите новое время получения.')}
  if(!f.reportValidity())return;
  if(!qty()){showCart();return}
- const sum=total(),order={number:String(Date.now()).slice(-6),mode:data.mode,day:data.day,time:data.time,payment:data.payment,amount:sum,items:{...cart},address:data.address||''};
+ const sum=total(),order={clubId:newLocalId(),number:String(Date.now()).slice(-6),mode:data.mode,day:data.day,time:data.time,payment:data.payment,amount:sum,items:{...cart},address:data.address||''};
  savedAddresses(); // Migrate the previous delivery address before replacing its order.
  if (order.mode === 'delivery') rememberAddress(order.address);
  order.names = Object.fromEntries(dishes.filter(dish => cart[dish.id]).map(dish => [dish.id, dish.name]));
- write(lastOrderKey,order);saveContacts(f);
+ write(lastOrderKey,order);
+ window.dispatchEvent(new CustomEvent('shop-order-saved', {detail:order}));
+ saveContacts(f);
  cart={};write(cartKey,cart);draft={};renderMenu();openPanel('Заказ оформлен','receipt');
  body.innerHTML='<div class="receipt"><span class="receipt-mark">'+icon('check')+'</span><h3>Демо-заказ № '+order.number+'</h3><p class="panel-copy">Заказ оформлен на этом устройстве. Деньги не списаны, заявка в ресторан не отправлена.</p><dl id="summary"></dl><button class="primary full" data-do="menu">Вернуться в меню</button></div>';
  const orderList = document.createElement('ul');

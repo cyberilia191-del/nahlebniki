@@ -301,3 +301,125 @@ dialog { background:var(--paper),#201e1b; }
 .home-view.past-cover-top .mast-inner::after { background:#ffffff26; }
 #stories { scroll-margin-top:calc(var(--mast-height) + 14px); }
 .story-drinks { display:block; margin:10px auto 0; min-height:44px; text-decoration:underline; }
+
+/* Account actions sit inside the cover and scroll away with the poster. */
+.home-view .main-links .nav-profile { display:none; }
+.hero-actions {
+  position:absolute; z-index:4; inset-inline:max(var(--gutter),env(safe-area-inset-left)) max(var(--gutter),env(safe-area-inset-right));
+  top:calc(var(--mast-height,76px) + 5px); display:flex; align-items:center; justify-content:space-between;
+  pointer-events:none;
+}
+.hero-actions button { pointer-events:auto; }
+.hero-account,.bonus-chip,.hero-icon { display:inline-flex; align-items:center; justify-content:center; }
+.hero-account { gap:7px; }
+.hero-icon { color:#fff; width:44px; height:44px; border-radius:50%; }
+.hero-icon svg { width:26px; height:26px; }
+.hero-icon:hover { background:#841b1938; }
+.bell-button { position:relative; }
+#unread-dot { position:absolute; top:4px; right:6px; width:11px; height:11px; border:2px solid #b32b23; border-radius:50%; background:#fff4a8; }
+.bonus-chip { min-height:38px; gap:6px; padding:5px 12px; border-radius:22px; color:#ae251d; background:#fff8e9; box-shadow:0 2px 0 #98231c; }
+.bonus-chip strong { font-size:1.12rem; line-height:1; }
+.bonus-chip svg { width:17px; height:17px; }
+.bonus-chip small { font-size:.75rem; font-weight:700; border-left:1px solid #d8b9a3; padding-left:6px; }
+dialog[data-screen^="club"] { width:min(580px,100%); background:var(--paper),#1b1a18; }
+dialog[data-screen^="club"] .panel-inner { padding-inline:clamp(16px,3vw,28px); }
+dialog[data-screen^="club"] .panel-header {
+  display:grid; justify-content:start; justify-items:start; gap:15px; margin-bottom:20px; border:0; padding:0;
+}
+dialog[data-screen^="club"] .panel-header h2 { font-size:clamp(1.85rem,6.6vw,2.8rem); }
+dialog[data-screen^="club"] .panel-header .icon-btn { display:none; }
+.club-back { display:flex; align-items:center; gap:6px; min-height:40px; padding:5px 12px 5px 8px; border:1px solid #59534b; border-radius:24px; color:var(--cream); }
+.club-back svg { width:16px; height:16px; }
+.level-rail {
+  display:flex; position:relative; gap:12px; overflow-x:auto; overscroll-behavior-x:contain; scroll-snap-type:x mandatory;
+  scrollbar-width:none; border-radius:18px;
+}
+.level-rail::-webkit-scrollbar { display:none; }
+.level-card {
+  position:relative; overflow:hidden; isolation:isolate; flex:0 0 88%; min-height:clamp(215px,35vh,294px);
+  display:flex; flex-direction:column; align-items:flex-start; justify-content:space-between; gap:8px;
+  padding:clamp(15px,3vw,24px); border-radius:18px; border:1px solid #514d46; background:var(--paper),#35332e;
+  color:#c7c4ba; scroll-snap-align:start;
+}
+.level-card.current { background:var(--paper),#d73629; color:var(--cream); border-color:#ff6851; }
+.level-card::after { content:""; position:absolute; z-index:-1; inset:auto 0 0; height:8px; background:var(--check) 0 0/8px 8px; opacity:.43; }
+.level-status { display:flex; gap:7px; align-items:center; position:relative; z-index:1; font-size:.85rem; font-weight:700; }
+.level-status span { border:1px solid currentColor; border-radius:24px; padding:1px 8px; }
+.level-card h3 { position:relative; z-index:1; max-width:68%; margin-bottom:auto; font:700 clamp(1.95rem,7vw,3.65rem)/1.03 var(--display); text-transform:uppercase; letter-spacing:-.04em; }
+.current h3 { text-shadow:1px 2px #672b20; }
+.level-mascot {
+  position:absolute; z-index:-1; right:-4%; bottom:-6%; width:54%; height:83%; background:url('assets/plush-sandwich.webp') center bottom / contain no-repeat;
+  transform:rotate(10deg); filter:grayscale(1) brightness(.54); opacity:.58;
+}
+.current .level-mascot { opacity:1; filter:drop-shadow(2px 2px 0 var(--cream)) drop-shadow(1px 4px 0 #773325); }
+.card-points,.level-condition { display:inline-flex; position:relative; z-index:1; gap:6px; align-items:center; padding:6px 10px; border-radius:20px; background:#272521; color:#d1cfc7; font-size:.88rem; font-weight:700; }
+.card-points { background:var(--cream); color:#9f2119; font-size:1.05rem; }
+.level-condition svg,.card-points svg { width:17px; height:17px; }
+.level-tools { display:flex; align-items:center; justify-content:space-between; gap:12px; margin:9px 0 18px; color:var(--muted); font-size:.875rem; }
+.level-tools div { display:flex; gap:6px; }
+.level-tools button { width:38px; height:38px; display:grid; place-items:center; border:1px solid #514e46; border-radius:50%; color:var(--cream); }
+.level-tools button:disabled { opacity:.34; }
+.club-progress,.club-links button,.achievement,.notice,.gifts-balance,.exchange-result { background:#272521; border:1px solid #454139; border-radius:16px; }
+.club-progress { padding:18px; }
+.club-progress h3,.exchange-card h3 { font:700 clamp(1.35rem,4vw,1.8rem)/1.14 var(--display); }
+.club-progress p,.club-progress small,.club-note,.club-links small,.achievement p,.achievement small,.notice span:not(.notice-title),.notice time,.exchange-card p { color:var(--muted); }
+.club-progress p,.exchange-card p { margin-top:7px; }
+.club-progress small,.club-links small { display:block; font-size:.875rem; }
+.club-progress progress { display:block; width:100%; height:8px; margin:14px 0 12px; accent-color:var(--red); appearance:none; border:0; border-radius:10px; background:#4c4941; overflow:hidden; }
+.club-progress progress::-webkit-progress-bar { border-radius:10px; background:#4c4941; }
+.club-progress progress::-webkit-progress-value { border-radius:10px; background:var(--red); }
+.club-progress progress::-moz-progress-bar { border-radius:10px; background:var(--red); }
+.club-links,.gifts-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:12px; }
+.club-links { margin-top:12px; }
+.club-links button { text-align:left; padding:15px; display:grid; align-content:start; gap:6px; }
+.club-links i,.achievement>i { display:grid; place-items:center; width:42px; height:42px; color:#ffc668; background:#443627; border-radius:50%; }
+.club-links button:last-child i { color:#ff806e; background:#462e29; }
+.club-links strong,.achievement h3,.gift-card h3 { font:700 clamp(1.2rem,3.4vw,1.5rem)/1.16 var(--display); }
+.club-links strong { margin-top:5px; }
+.club-caption { margin:0 0 14px; color:var(--muted); font-weight:700; }
+.achievement-list,.notices { display:grid; gap:10px; }
+.achievement { display:flex; align-items:flex-start; gap:12px; padding:15px; }
+.achievement>i { flex:none; color:#b4afa4; background:#39362f; }
+.achievement.achieved>i { color:#ffc667; background:#463623; }
+.achievement p { margin:5px 0; font-size:.94rem; }
+.achievement small { font-weight:700; }
+.achieved small { color:#f6c169; }
+.gifts-balance { padding:14px; display:flex; align-items:center; gap:10px; flex-wrap:wrap; justify-content:space-between; }
+.gifts-balance strong { display:flex; align-items:center; gap:7px; color:#ff9684; }
+.club-note { margin:12px 0 18px; font-size:.91rem; }
+.gift-card { overflow:hidden; display:flex; flex-direction:column; min-width:0; border:1px solid #433f39; border-radius:16px; background:#252320; }
+.gift-card img { display:block; width:100%; aspect-ratio:1.38; object-fit:cover; }
+.gift-card>div { flex:1; display:flex; flex-direction:column; align-items:flex-start; padding:12px; }
+.gift-card h3 { margin-bottom:6px; }
+.gift-card strong { margin:auto 0 12px; font-size:.92rem; }
+.gift-card button { min-height:40px; font-size:.88rem; font-weight:700; border-radius:22px; padding:7px 12px; background:var(--cream); color:var(--ink); }
+.gift-card button:disabled { background:#35332f; color:#c6c0b6; opacity:1; }
+.exchange-card img { display:block; width:100%; max-height:32vh; object-fit:cover; border-radius:18px; margin-bottom:18px; }
+.exchange-card button { margin-top:16px; }
+.exchange-cancel { display:block; margin-inline:auto; text-decoration:underline; min-height:40px; }
+.exchange-result { padding:14px; color:var(--cream); margin-bottom:12px; }
+.empty-notices { min-height:220px; display:grid; place-content:center; justify-items:center; gap:12px; color:var(--muted); }
+.empty-notices svg { width:36px; height:36px; }
+.notice { position:relative; display:grid; gap:7px; text-align:left; padding:15px 30px 15px 16px; }
+.notice-title { font:700 1.3rem/1.25 var(--display); }
+.notice time { font-size:.875rem; }
+.notice-dot { position:absolute; right:15px; top:20px; width:8px; height:8px; border-radius:50%; background:#ff705e; }
+.notice[aria-pressed="false"] { border-color:#6a4c3f; }
+@media (max-height:570px) and (min-aspect-ratio:1/1) {
+  .hero-actions { top:var(--mast-height,48px); }
+  .hero .poster { top:calc(var(--mast-height,48px) + 42px); }
+  .hero .poster-kicker { display:none; }
+  .hero h1 { font-size:min(14vw,21vh); }
+  .hero .mascot-stage { top:max(41%,calc(var(--mast-height,48px) + 80px)); }
+}
+@media (max-width:370px) {
+  .club-links { gap:8px; }
+  .club-links button,.gift-card>div { padding:10px; }
+}
+
+@media (max-width:760px) and (orientation:portrait) {
+  .hero .poster { top:max(18%,calc(var(--mast-height,62px) + 58px)); }
+}
+@media (max-width:550px) and (orientation:portrait) {
+  .hero .poster { top:max(21%,calc(var(--mast-height,62px) + 58px)); }
+}

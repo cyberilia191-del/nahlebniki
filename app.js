@@ -11,6 +11,12 @@ const dishes = [
   {id:'sauce',category:'Соусы',name:'Спайси-соус',price:60,weight:'40 г',description:'Сливочный соус с чили и копчёной паприкой.'}
 ];
 const shapes = {
+ avatar:'<circle cx="12" cy="7" r="4.2" fill="currentColor" stroke="none"/><path d="M3 21v-2c0-4 4-7 9-7s9 3 9 7v2z" fill="currentColor" stroke="none"/>',
+ gift:'<rect x="3" y="8" width="18" height="4" rx="1"/><path d="M5 12v8h14v-8M12 8v12m0-12C8 8 5 7 6 4s5-1 6 4c1-5 5-7 6-4s-2 4-6 4Z"/>',
+ bell:'<path d="M4 17c2-2 2-4 2-7a6 6 0 0 1 12 0c0 3 0 5 2 7l.5 1h-17zM10 21a3 3 0 0 0 4 0M12 3V2"/>',
+ trophy:'<path d="M7 4h10v5a5 5 0 0 1-10 0zM7 6H3v2c0 3 2 4 5 4m9-6h4v2c0 3-2 4-5 4M12 14v5m-4 2h8"/>',
+ lock:'<rect x="5" y="10" width="14" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3m-4 5v2"/>',
+ down:'<path d="M12 3v17m-7-7 7 7 7-7"/>',
  search:'<circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 5 5"/>',
  megaphone:'<path d="M3 10v4l12 3V7zM15 7l5-3v16l-5-3M6 15l2 6h3l-2-5"/>',
  chevron:'<path d="m9 5 7 7-7 7"/>',
@@ -41,21 +47,19 @@ const shapes = {
 };
 function icon(name){return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'+shapes[name]+'</svg>'}
 document.querySelectorAll('[data-icon]').forEach(el=>el.innerHTML=icon(el.dataset.icon));
-const assets = Object.fromEntries(dishes.map(d=>[d.id,'assets/'+d.id+'.jpg']));
+const embeddedImages = document.getElementById('menu-images');
+const assets = embeddedImages ? JSON.parse(embeddedImages.textContent) : Object.fromEntries(dishes.map(d=>[d.id,'assets/'+d.id+'.jpg']));
 const sections = [
- {category:'Сэндвичи', title:'Хочу сэндвич', photo:'pastrami'},
- {category:'Напитки', title:'Что попить', photo:'lemonade'},
- {category:'Бургеры', title:'Хочу бургер', photo:'smash'},
- {category:'Закуски', title:'К сэндвичу', photo:'fries'},
- {category:'Соусы', title:'Соусы', photo:'sauce'},
- {category:'Всё меню', title:'Всё меню', photo:'cheese'}
+ {id:'pastrami', name:'Сэндвичи'}, {id:'smash', name:'Бургеры'}, {id:'fries', name:'Закуски'},
+ {id:'lemonade', name:'Напитки'}, {id:'sauce', name:'Соусы'}
 ];
 const $=s=>document.querySelector(s);
 const cartKey='nahlebniki.cart.v1',contactKey='nahlebniki.contact.v1';
 function read(key){try{return JSON.parse(localStorage.getItem(key))||{}}catch{return {}}}
 function write(key,value){try{localStorage.setItem(key,JSON.stringify(value))}catch{}}
+function newLocalId() { return crypto.getRandomValues(new Uint32Array(4)).join('-'); }
 function getCart(){const saved=read(cartKey);return Object.fromEntries(dishes.filter(d=>Number.isInteger(saved[d.id])&&saved[d.id]>0).map(d=>[d.id,Math.min(saved[d.id],99)]))}
-let cart=getCart(),selected='Всё меню',screen='',draft={};
+let cart=getCart(),screen='',draft={};
 const favoritesKey = 'nahlebniki.favorites.v1';
 function readFavorites() {
  const saved = read(favoritesKey);
@@ -69,124 +73,188 @@ const total=()=>dishes.reduce((sum,d)=>sum+d.price*(cart[d.id]||0),0);
 const qty=()=>Object.values(cart).reduce((a,b)=>a+b,0);
 function stepper(d){return '<div class="stepper"><button data-do="minus" data-id="'+d.id+'" aria-label="Убрать одну порцию, '+d.name+'">'+icon('minus')+'</button><output aria-label="Количество">'+cart[d.id]+'</output><button data-do="plus" data-id="'+d.id+'" aria-label="Добавить ещё, '+d.name+'" '+(cart[d.id]>=99?'disabled':'')+'>'+icon('plus')+'</button></div>'}
 function addButton(d){return cart[d.id]?stepper(d):'<button class="add-square" data-do="plus" data-id="'+d.id+'" aria-label="Добавить в корзину, '+d.name+'">'+icon('plus')+'</button>'}
-function renderCategories() {
- $('#categories').innerHTML = sections.map(({category,title,photo}) =>
-   `<button type="button" class="catalog-tile" data-cat="${category}"><img src="${assets[photo]}" alt=""><span>${title}</span></button>`
- ).join('');
+const stories = [
+  {label:'Новинки', title:'В фокусе — пастрами', copy:'Томлёная говядина, чеддер и огурчики встречаются между двумя ломтиками с гриля.', dish:'pastrami', target:'pastrami', tone:'red'},
+  {label:'Дуэт дня', title:'Криспи + лимонад', copy:'Курица с острым чили и холодный лимонад. Собери пару из двух разделов меню.', dish:'chicken', target:'pastrami', tone:'mustard'},
+  {label:'Три сыра', title:'Три сыра под корочкой', copy:'Чеддер, моцарелла и гауда. В «Тройном чизе» все три плавятся прямо на хлебе.', dish:'cheese', target:'pastrami', tone:'pink'},
+  {label:'С гриля', title:'Смэш на гриле', copy:'Поджаренная говяжья котлета, чеддер и огурчики в мягкой булочке.', dish:'smash', target:'smash', tone:'mint'},
+  {label:'К сэндвичу', title:'Хруст по краям', copy:'Картофель с морской солью или лук в золотистом кляре. Загляни в закуски.', dish:'fries', target:'fries', tone:'cream'},
+  {label:'Акции', title:'Акции шопа', copy:'Действующих акций пока нет. Посмотри, что сегодня есть в меню.', dish:'sauce', target:'menu', tone:'red'}
+];
+const promos = [
+  {title:'Пастрами<br>на гриле', dish:'pastrami', target:'pastrami', tone:'red'},
+  {title:'Смэш<br>и бекон', dish:'bacon', target:'smash', tone:'mustard'},
+  {title:'Фри<br>и кольца', dish:'fries', target:'fries', tone:'mint'}
+];
+const modeKey = 'nahlebniki.fulfilment.v1';
+let fulfilmentMode = read(modeKey) === 'pickup' ? 'pickup' : 'delivery';
+const motion = () => matchMedia('(prefers-reduced-motion: reduce)').matches ? 'instant' : 'smooth';
+
+function renderHome() {
+  $('#story-rail').innerHTML = stories.map((story, i) =>
+    `<button class="story" data-story="${i}"><span class="story-ring ${story.tone}"><img src="${assets[story.dish]}" alt="" loading="lazy"></span><span>${story.label}</span></button>`
+  ).join('');
+  $('#promo-rail').innerHTML = promos.map(promo =>
+    `<article class="promo ${promo.tone}"><img src="${assets[promo.dish]}" loading="lazy" alt=""><div><h2>${promo.title}</h2><button data-promo="${promo.target}">Открыть</button></div></article>`
+  ).join('');
+  updateRailControls();
 }
-function favoriteButton(dish) {
- return `<button class="favorite-heart" data-favorite="${dish.id}" aria-label="Избранное — ${dish.name}" aria-pressed="${favorites.has(dish.id)}">${icon('heart')}</button>`;
+function updateRailControls() {
+  const rail = $('#promo-rail');
+  const remaining = rail.scrollWidth - rail.clientWidth - rail.scrollLeft;
+  $('.rail-controls').hidden = rail.scrollWidth <= rail.clientWidth + 2;
+  $('[data-slide="-1"]').disabled = rail.scrollLeft < 2;
+  $('[data-slide="1"]').disabled = remaining < 2;
 }
-function renderMenu(){
- const visible = dishes.filter(dish =>
-   (selected === 'Всё меню' || selected === dish.category) && (!favoritesOnly || favorites.has(dish.id))
- );
- $('#favorite-filter').setAttribute('aria-pressed', favoritesOnly);
- $('#favorites-empty').hidden = visible.length > 0;
- $('#empty-title').textContent = favorites.size ? 'В этой категории нет избранного' : 'Пока нет избранного';
- $('#products').innerHTML=visible.map(d=>'<article class="product"><div class="photo"><img src="'+assets[d.id]+'" alt="'+d.name+'" loading="lazy">'+(d.tag?'<span class="label '+(d.tone||'')+'">'+(d.icon?icon(d.icon):'')+d.tag+'</span>':'')+favoriteButton(d)+'</div><div class="product-body"><div class="product-title"><h3>'+d.name+'</h3><span class="weight">'+d.weight+'</span></div><p>'+d.description+'</p><div class="buy-row"><strong class="price">'+price(d.price)+'</strong>'+addButton(d)+'</div></div></article>').join('');
- $('#cart-count').textContent=qty();
- if (screen === 'home-search') renderSearchResults();
+$('#promo-rail').addEventListener('scroll', updateRailControls, {passive:true});
+function setFulfilment(mode) {
+  fulfilmentMode = mode;
+  draft.mode = mode;
+  write(modeKey, mode);
 }
-const appNav = $('.app-nav');
-const tabButtons = Array.from(appNav.querySelectorAll('[data-tab]'));
-function selectTab(name) {
- const index = tabButtons.findIndex(button => button.dataset.tab === name);
- tabButtons.forEach((button, i) => {
-   if (i === index) button.setAttribute('aria-current', 'page');
-   else button.removeAttribute('aria-current');
- });
- appNav.style.setProperty('--tab-index', index);
- appNav.classList.toggle('map-active', name === 'pickup');
-}
-let menuTab;
-history.scrollRestoration = 'manual';
 function openPanel(title, view) {
- screen = view;
- $('#panel-title').textContent = title;
- panel.dataset.screen = view;
- panel.classList.toggle('empty-cart-screen', view === 'cart' && qty() === 0);
- const section = view.split('-')[0];
- const withNav = ['cart', 'pickup', 'profile', 'home'].includes(section);
- panel.classList.toggle('with-nav', withNav);
- if (withNav) {
-   if (appNav.parentElement !== panel) panel.append(appNav);
-   selectTab(view === 'home-search' ? menuTab : section);
- }
- appNav.hidden = !withNav;
- if (!panel.open) {
-   panel.showModal();
-   document.body.classList.add('modal');
- }
- panel.scrollTop = 0;
+  screen = view;
+  $('#panel-title').textContent = title;
+  panel.dataset.screen = view;
+  $('.club-back').hidden = !view.startsWith('club');
+  if (!panel.open) {
+    panel.showModal();
+    document.body.classList.add('modal');
+  }
+  panel.scrollTop = 0;
 }
-function applyRoute() {
- if (panel.open) panel.close();
- const section = sections.find(item => location.hash === '#menu/' + item.photo);
- menuTab = section || location.hash === '#menu' ? 'catalog' : 'home';
- selected = section?.category || 'Всё меню';
- favoritesOnly = false;
- $('#home-actions').hidden = menuTab !== 'home';
- $('#menu').hidden = menuTab !== 'catalog';
- $('#catalog-cover').hidden = Boolean(section);
- $('#catalog-list').hidden = !section;
- $('#category-title').textContent = section?.category || '';
- selectTab(menuTab);
- renderMenu();
- window.scrollTo({top: history.state?.scrollY || 0, behavior:'instant'});
-}
-function navigate(hash, state = {}) {
- if (hash !== location.hash) {
-   history.replaceState({...history.state, scrollY:window.scrollY}, '');
-   history.pushState(state, '', hash);
- }
- applyRoute();
-}
-function openMenuTab(name) {
- navigate(name === 'catalog' ? '#menu' : '#top');
-}
-function openCategory(category) {
- const section = sections.find(item => item.category === category);
- if (!section) return;
- if (location.hash !== '#menu') navigate('#menu');
- navigate('#menu/' + section.photo, {fromCover:true});
- $('#category-title').focus({preventScroll:true});
-}
-function refreshGreeting() {
- const {name} = read(contactKey);
- $('#greeting').textContent = typeof name === 'string' && name.trim() ? 'Привет, '+name.trim()+'!' : 'Привет!';
-}
-function showSearch() {
- openPanel('Поиск по меню', 'home-search');
- body.innerHTML = `<label class="dish-query">${icon('search')}<input id="dish-query" type="search" placeholder="Найти блюдо" aria-label="Найти блюдо" autocomplete="off"></label>
- <p id="search-count" class="sr" role="status"></p><div id="search-results"></div>`;
- renderSearchResults();
- $('#dish-query').focus();
+function showStory(index) {
+  const story = stories[index];
+  openPanel(story.label, 'story');
+  body.innerHTML = `<article class="story-detail"><img src="${assets[story.dish]}" alt=""><h3>${story.title}</h3><p>${story.copy}</p></article>`;
+  const action = document.createElement('button');
+  action.className = 'primary full';
+  action.textContent = 'В каталог';
+  action.addEventListener('click', () => navigate(story.target === 'menu' ? '#menu' : '#group-' + story.target));
+  body.append(action);
+  if (story.dish === 'chicken') {
+    action.textContent = 'К сэндвичам';
+    const drinks = document.createElement('button');
+    drinks.className = 'story-drinks';
+    drinks.textContent = 'К напиткам';
+    drinks.addEventListener('click', () => navigate('#group-lemonade'));
+    body.append(drinks);
+  }
 }
 function normalized(text) {
- return text.toLocaleLowerCase('ru-RU').replace(/ё/g, 'е').trim();
+  return text.toLocaleLowerCase('ru-RU').replace(/ё/g, 'е').trim();
 }
-function renderSearchResults() {
- const query = normalized($('#dish-query').value);
- if (!query) {
-   $('#search-count').textContent = '';
-   $('#search-results').innerHTML = '<p class="no-matches">Введите название блюда или ингредиент.</p>';
-   return;
- }
- const terms = query.split(/\s+/);
- const matches = dishes.filter(dish => {
-   const text = normalized(dish.name+' '+dish.description+' '+dish.category);
-   return terms.every(term => text.includes(term));
- });
- $('#search-count').textContent = 'Найдено блюд: '+matches.length;
- $('#search-results').innerHTML = matches.length ? matches.map(dish =>
-   `<article class="search-result"><img src="${assets[dish.id]}" alt="" width="72" height="72"><div>
-    <h3>${dish.name}</h3><p>${dish.description}</p><div class="buy-row"><strong>${price(dish.price)}</strong>${addButton(dish)}</div></div></article>`
- ).join('') : '<p class="no-matches">Блюд по этому запросу нет. Попробуйте другое название или ингредиент.</p>';
+function dishCard(dish) {
+  return `<article class="product"><div class="photo"><img src="${assets[dish.id]}" alt="" loading="lazy">
+    <button class="favorite-heart" data-favorite="${dish.id}" aria-label="Избранное — ${dish.name}" aria-pressed="${favorites.has(dish.id)}">${icon('heart')}</button></div>
+    <div class="product-body"><span class="weight">${dish.weight}</span><h3>${dish.name}</h3><p>${dish.description}</p>
+    <div class="buy-row"><strong class="price">${price(dish.price)}</strong>${addButton(dish)}</div></div></article>`;
 }
-function showNews() {
- openPanel('Акции и новости', 'home-news');
- body.innerHTML = '<div class="news-empty">'+icon('megaphone')+'<p>Здесь пока нет акций и новостей</p><button class="primary" data-do="home">На главную</button></div>';
+function renderMenu() {
+  const count = qty();
+  for (const badge of document.querySelectorAll('[data-cart-count]')) {
+    badge.hidden = count === 0;
+    badge.textContent = count;
+    badge.closest('button').setAttribute('aria-label', count ? 'Корзина, ' + count + ' шт.' : 'Корзина');
+  }
+  const query = normalized($('#dish-query').value);
+  const terms = query.split(/\s+/);
+  const visible = dishes.filter(dish => {
+    const text = normalized(dish.name + ' ' + dish.description + ' ' + dish.category);
+    return (!favoritesOnly || favorites.has(dish.id)) && terms.every(term => text.includes(term));
+  });
+  const groups = sections.map(section => ({...section, dishes: visible.filter(dish => dish.category === section.name)}))
+    .filter(group => group.dishes.length);
+  $('#favorite-filter').setAttribute('aria-pressed', String(favoritesOnly));
+  $('#products').innerHTML = groups.map(group =>
+    `<section class="menu-group" id="group-${group.id}" aria-labelledby="title-${group.id}"><h2 id="title-${group.id}">${group.name}</h2><div class="products">${group.dishes.map(dishCard).join('')}</div></section>`
+  ).join('');
+  const signature = groups.map(group => group.id).join(' ');
+  if ($('#categories').dataset.groups !== signature) {
+    $('#categories').dataset.groups = signature;
+    $('#categories').innerHTML = groups.map(group => `<a href="#menu/${group.id}" data-cat="${group.id}">${group.name}</a>`).join('');
+    activeCategory = '';
+  }
+  $('.category-bar').hidden = !groups.length && $('.catalog-cart').hidden;
+  $('#no-results').hidden = groups.length > 0;
+  $('#empty-title').textContent = query ? 'Блюд по запросу нет' : 'Пока нет избранного';
+  $('#search-count').textContent = 'Блюд в меню: ' + visible.length;
+  syncCategory();
+}
+let activeCategory = '';
+function syncCategory() {
+  const line = $('.category-bar').getBoundingClientRect().bottom + 12;
+  const groups = document.querySelectorAll('.menu-group');
+  let current = groups[0];
+  for (const group of groups) {
+    if (group.getBoundingClientRect().top > line) break;
+    current = group;
+  }
+  if (!current) return;
+  const id = current.id.slice('group-'.length);
+  if (activeCategory === id) return;
+  activeCategory = id;
+  const rail = $('#categories');
+  const tab = rail.querySelector('[data-cat="' + id + '"]');
+  rail.querySelector('[aria-current]')?.removeAttribute('aria-current');
+  tab.setAttribute('aria-current','location');
+  const bounds = rail.getBoundingClientRect();
+  const rect = tab.getBoundingClientRect();
+  const gap = 12;
+  if (rect.right > bounds.right - gap) rail.scrollBy({left:rect.right - bounds.right + gap, behavior:'instant'});
+  else if (rect.left < bounds.left + gap) rail.scrollBy({left:rect.left - bounds.left - gap, behavior:'instant'});
+}
+function goToCategory(id, behavior = motion()) {
+  const group = document.getElementById('group-' + id);
+  if (!group) return;
+  group.scrollIntoView({block:'start', behavior});
+}
+let frame = 0;
+function scheduleSync() {
+  if (frame) return;
+  frame = requestAnimationFrame(() => { frame = 0; syncCategory(); });
+}
+window.addEventListener('scroll', scheduleSync, {passive:true});
+function measureBars() {
+  const root = document.documentElement.style;
+  root.setProperty('--mast-height', $('.masthead').offsetHeight + 'px');
+  root.setProperty('--tabs-height', $('.category-bar').offsetHeight + 'px');
+  activeCategory = '';
+  syncCategory();
+  updateRailControls();
+}
+const barObserver = new ResizeObserver(measureBars);
+barObserver.observe($('.masthead'), {box:'border-box'});
+barObserver.observe($('.category-bar'), {box:'border-box'});
+barObserver.observe($('#categories'));
+window.addEventListener('resize', measureBars);
+history.scrollRestoration = 'manual';
+function applyRoute() {
+  if (panel.open) panel.close();
+  const catalog = /^#menu(?:\/|$)/.test(location.hash);
+  $('.masthead').hidden = !catalog;
+  $('#home-actions').hidden = catalog;
+  $('.catalog-cart').hidden = catalog;
+  if (catalog) $('.menu-link').setAttribute('aria-current','page');
+  else $('.menu-link').removeAttribute('aria-current');
+  $('#dish-query').value = '';
+  favoritesOnly = false;
+  activeCategory = '';
+  renderMenu();
+  measureBars();
+  const routeId = location.hash.match(/^#(?:menu\/|group-)([\w-]+)$/)?.[1];
+  if (history.state?.scrollY != null) window.scrollTo({top:history.state.scrollY,behavior:'instant'});
+  else if (sections.some(section => section.id === routeId)) goToCategory(routeId, 'instant');
+  else window.scrollTo({top:0,behavior:'instant'});
+  syncCategory();
+  scheduleSync();
+}
+function navigate(hash) {
+  if (hash !== location.hash) {
+    history.replaceState({...history.state,scrollY:window.scrollY}, '');
+    history.pushState(null, '', hash);
+  } else history.replaceState(null,'',hash);
+  applyRoute();
 }
 function showPickup() {
  openPanel('Где забрать заказ', 'pickup');
@@ -203,7 +271,7 @@ function showCart(){
    body.replaceChildren($('#empty-cart-content').content.cloneNode(true));
    return;
  }
- body.innerHTML=orderSteps(1)+dishes.filter(d=>cart[d.id]).map(d=>'<div class="cart-row"><img src="'+assets[d.id]+'" alt=""><div><h3>'+d.name+'</h3>'+stepper(d)+'</div><div class="row-end"><strong>'+price(d.price*cart[d.id])+'</strong><button class="remove" data-do="remove" data-id="'+d.id+'" aria-label="Удалить '+d.name+'">'+icon('trash')+'</button></div></div>').join('')+'<div class="total">Итого<strong>'+price(total())+'</strong></div><button class="primary full" data-do="checkout">Перейти к оформлению</button><p class="note">Демо-заказ · Без списания средств</p>';
+ body.innerHTML=dishes.filter(d=>cart[d.id]).map(d=>'<div class="cart-row"><img src="'+assets[d.id]+'" alt=""><div><h3>'+d.name+'</h3>'+stepper(d)+'</div><div class="row-end"><strong>'+price(d.price*cart[d.id])+'</strong><button class="remove" data-do="remove" data-id="'+d.id+'" aria-label="Удалить '+d.name+'">'+icon('trash')+'</button></div></div>').join('')+'<div class="total">Итого<strong>'+price(total())+'</strong></div><button class="primary full" data-do="checkout">Перейти к оформлению</button><p class="note">Демо-заказ · Без списания средств</p>';
 }
 function showInfo(){openPanel('Доставка и самовывоз','info');body.innerHTML='<div class="info"><section><h3>'+icon('truck')+'Доставка по Смоленску</h3><p class="panel-copy">Выберите день и время, затем укажите улицу, дом и квартиру. В демо доставка бесплатная.</p></section><section><h3>'+icon('bag')+'Самовывоз</h3><p class="panel-copy">Выберите время получения в сэндвич-шопе «Нахлебники» в Смоленске.</p></section><section><h3>Демонстрационный режим</h3><p class="panel-copy">Заказ оформляется только на этом устройстве. Деньги не списываются, а ресторан не получает заявку.</p></section></div><button class="primary full" data-do="menu">Перейти в меню</button>'}
 const moscowNow=()=>new Date(Date.now()+3*3600000);
@@ -214,7 +282,7 @@ function dayLabel(day){return new Date(day+'T12:00:00Z').toLocaleDateString('ru-
 function storeDraft(){const f=$('#checkout');if(f)draft=Object.fromEntries(new FormData(f))}
 function updateMode(){const delivery=$('input[name=mode]:checked').value==='delivery';$('#address-field').hidden=!delivery;$('#address').disabled=!delivery;$('#address').required=delivery;$('#pickup-note').hidden=delivery;$('#saved-field').hidden=!delivery || $('#saved-address').options.length < 2}
 function updateTimes(preferred){const times=slots($('#day').value);$('#time').innerHTML=times.map(t=>'<option>'+t+'</option>').join('');if(times.includes(preferred))$('#time').value=preferred;$('#time').setCustomValidity('')}
-const contactFields = `<label class="field">Имя<input name="name" autocomplete="given-name" placeholder="Как к вам обращаться" maxlength="80" required></label><label class="field">Телефон<input type="tel" name="phone" autocomplete="tel" placeholder="+7 (___) ___-__-__" maxlength="24" required></label><label class="field">E-mail<input type="email" name="email" autocomplete="email" placeholder="Для уведомлений об оплате" maxlength="160" required></label>`;
+const contactFields = `<label class="field">Имя<input name="name" autocomplete="given-name" placeholder="Как к вам обращаться" maxlength="80" required></label><label class="field">Телефон<input type="tel" name="phone" autocomplete="tel" placeholder="+7 (___) ___-__-__" maxlength="24" required></label><label class="field">E-mail<input type="email" name="email" autocomplete="email" placeholder="name@example.ru" maxlength="160" required></label>`;
 const lastOrderKey = 'nahlebniki.last-order.v1';
 const addressKey = 'nahlebniki.addresses.v1';
 const backToProfile = '<button class="back profile-back" data-do="profile">'+icon('back')+' В профиль</button>';
@@ -238,50 +306,19 @@ function lastOrderItems(order) {
      return {id, count, dish, name: typeof oldName === 'string' ? oldName : dish?.name || id};
    });
 }
-function clubState(order = read(lastOrderKey)) {
- const saved = order.club;
- if (saved && [saved.orders, saved.balance].every(n => Number.isSafeInteger(n) && n >= 0)) return saved;
- return {orders: order.number ? 1 : 0, balance: 0};
-}
-function clubCard(order) {
- const {orders, balance} = clubState(order);
- const level = orders >= 10 ? 'Легенда' : orders >= 3 ? 'Свой' : 'Новичок';
- const goal = orders < 3 ? 3 : 10;
- const mascot = $('.sandwich-feature img').getAttribute('src');
- return `<section class="club" aria-label="Клуб Нахлебников">
-   <div class="club-pass"><div><h3>Клуб Нахлебников</h3><strong>${level}</strong><p>${balance} демо-баллов</p></div><img src="${mascot}" alt=""></div>
-   <div class="club-stats"><div><h4>Уровень</h4><p>${orders >= 10 ? 'Высший уровень' : orders+' из '+goal+' заказов до уровня «'+(goal===3?'Свой':'Легенда')+'»'}</p><progress value="${Math.min(orders,goal)}" max="${goal}" aria-label="Прогресс уровня"></progress></div>
-   <div><h4>Достижения</h4><p>${orders ? 'Первый заказ ✓' : 'Оформи первый заказ'}${orders >= 3 ? ' · Свой в шопе ✓' : ''}${orders >= 10 ? ' · Легенда шопа ✓' : ''}</p></div></div>
-   <p class="club-rules">5% от суммы после скидки вернутся демо-баллами. 1 балл = 1 ₽ скидки на следующий демо-заказ.</p>
- </section>`;
-}
-function orderSteps(step) {
- return `<ol class="order-steps" aria-label="Этапы заказа"><li ${step===1?'aria-current="step"':''}>1 · Корзина</li><li ${step===2?'aria-current="step"':''}>2 · Проверка</li></ol>`;
-}
-function checkoutAmounts() {
- const subtotal = total();
- const discount = $('#use-points')?.checked ? Math.min(clubState().balance, subtotal) : 0;
- const amount = subtotal - discount;
- return {amount, discount, earned:Math.floor(amount / 20)};
-}
-function refreshCheckoutTotal() {
- const {amount, earned} = checkoutAmounts();
- $('#pay-amount').textContent = price(amount);
- $('#earn-points').textContent = 'Начислим демо-баллов: '+earned;
-}
 function showProfile() {
  const {name} = read(contactKey);
  const order = read(lastOrderKey);
  const lines = lastOrderItems(order);
  openPanel(typeof name === 'string' && name.trim() ? 'Привет, '+name.trim()+'!' : 'Профиль', 'profile');
- body.innerHTML = `<div class="profile-page">${clubCard(order)}
+ body.innerHTML = `<div class="profile-page">
  <section class="last-order"><div class="last-order-content"><h3>Последний заказ</h3><div id="last-order-body"></div></div></section>
  <div class="profile-rows profile-support">${profileRow('Служба заботы','support','care')}</div>
  <section><h3>Настройки</h3><div class="profile-rows">
  ${profileRow('Личные данные','person','personal')}${profileRow('Адреса','pin','addresses')}</div></section>
  <section><h3>Соцсети и информация</h3><div class="profile-rows">
  ${profileRow('ВКонтакте','chat',null,shopLinks.vk)}${profileRow('О НАХЛЕБНИКАХ','bread','about')}
- ${profileRow('Политика конфиденциальности','shield',null,shopLinks.privacy)}</div></section></div>`;
+ ${profileRow('О демо-заказах','bag','info')}${profileRow('Политика конфиденциальности','shield',null,shopLinks.privacy)}</div></section></div>`;
  const box = $('#last-order-body');
  if (!lines.length) {
    box.closest('section').classList.add('empty-order');
@@ -321,9 +358,9 @@ function repeatOrder() {
    body.prepend(notice);
  }
 }
-function showAbout(fromHome = false) {
- openPanel('О НАХЛЕБНИКАХ', fromHome ? 'home-about' : 'profile-about');
- body.innerHTML = fromHome ? '' : backToProfile;
+function showAbout() {
+ openPanel('О НАХЛЕБНИКАХ', 'profile-about');
+ body.innerHTML = backToProfile;
  body.append($('#about-content').content.cloneNode(true));
  body.querySelector('.about-source').href = shopLinks.about;
 }
@@ -395,20 +432,14 @@ function saveContacts(form) {
  const contacts = {};
  for (const key of ['name', 'phone', 'email']) contacts[key] = form.elements[key].value.trim();
  write(contactKey, contacts);
- refreshGreeting();
  return contacts;
 }
 function showCheckout(){
  if(!qty()){showCart();return}
- openPanel('Проверка заказа','checkout');
- const items = dishes.filter(d => cart[d.id]).map(d => `<li><span>${d.name} × ${cart[d.id]}</span><strong>${price(d.price*cart[d.id])}</strong></li>`).join('');
- const balance = clubState().balance;
- const redeem = balance ? `<label class="redeem"><input type="checkbox" id="use-points" name="redeem" value="yes"> Списать ${Math.min(total(),balance)} демо-баллов</label>` : '';
- body.innerHTML=orderSteps(2)+'<button class="back" data-do="cart">'+icon('back')+' В корзину</button><form id="checkout"><section class="review-items"><h3>Состав заказа</h3><ul>'+items+'</ul></section><fieldset><legend>Как получить</legend><div class="mode-group"><label><input type="radio" name="mode" value="delivery" checked><span>'+icon('truck')+' Доставка</span></label><label><input type="radio" name="mode" value="pickup"><span>'+icon('bag')+' Самовывоз</span></label></div></fieldset><label class="field" id="saved-field" hidden>Сохранённые адреса<select id="saved-address"><option value="">Выберите адрес</option></select></label><label class="field" id="address-field">Адрес в Смоленске<input name="address" id="address" autocomplete="street-address" maxlength="240" placeholder="Улица, дом, квартира" required></label><p class="note" id="pickup-note" hidden>Самовывоз из сэндвич-шопа «Нахлебники», Смоленск.</p><div class="split"><label class="field">День<select name="day" id="day" required></select></label><label class="field">Время (МСК)<select name="time" id="time" required></select></label></div><h3 class="subhead">Ваши контакты</h3>'+contactFields+'<label class="field">Способ оплаты<select name="payment"><option value="card">Картой при получении</option><option value="cash">Наличными при получении</option></select></label><div class="checkout-total">'+redeem+'<div class="total">К оплате<strong id="pay-amount"></strong></div><p id="earn-points" class="note"></p><p class="note">Демо-заказ сохраняется на этом устройстве. Оплата не взимается.</p><button class="primary full" type="submit">Оформить демо-заказ</button></div></form>';
- const f=$('#checkout'),previous=Object.assign({},read(contactKey),draft);
+ openPanel('Оформление заказа','checkout');
+ body.innerHTML='<button class="back" data-do="cart">'+icon('back')+' В корзину</button><form id="checkout"><fieldset><legend>Как получить</legend><div class="mode-group"><label><input type="radio" name="mode" value="delivery" checked><span>'+icon('truck')+' Доставка</span></label><label><input type="radio" name="mode" value="pickup"><span>'+icon('bag')+' Самовывоз</span></label></div></fieldset><label class="field" id="saved-field" hidden>Сохранённые адреса<select id="saved-address"><option value="">Выберите адрес</option></select></label><label class="field" id="address-field">Адрес в Смоленске<input name="address" id="address" autocomplete="street-address" maxlength="240" placeholder="Улица, дом, квартира" required></label><p class="note" id="pickup-note" hidden>Самовывоз из «Нахлебников», Смоленск, ул. Дзержинского, 4.</p><div class="split"><label class="field">День<select name="day" id="day" required></select></label><label class="field">Время (МСК)<select name="time" id="time" required></select></label></div><h3 class="subhead">Ваши контакты</h3>'+contactFields+'<label class="field">Способ оплаты<select name="payment"><option value="card">Картой при получении</option><option value="cash">Наличными при получении</option></select></label><div class="checkout-total"><div class="total">Итого<strong>'+price(total())+'</strong></div><p class="note">Демо-заказ сохраняется на этом устройстве. Оплата не взимается.</p><button class="primary full" type="submit">Оформить демо-заказ</button></div></form>';
+ const f=$('#checkout'),previous=Object.assign({mode:fulfilmentMode},read(contactKey),draft);
  for(const key of ['address','name','phone','email','payment'])if(typeof previous[key]==='string')f.elements[key].value=previous[key];
- if ($('#use-points')) $('#use-points').checked = previous.redeem === 'yes';
- refreshCheckoutTotal();
  const picker = $('#saved-address');
  for (const address of savedAddresses()) picker.add(new Option(address, address));
  picker.value = previous.address || '';
@@ -423,16 +454,24 @@ function confirmOrder(f){
  if(!slots(data.day).includes(data.time)){updateTimes();$('#time').setCustomValidity('Выберите новое время получения.')}
  if(!f.reportValidity())return;
  if(!qty()){showCart();return}
- const club=clubState();
- const {amount:sum, discount, earned}=checkoutAmounts();
- const order={number:String(Date.now()).slice(-6),mode:data.mode,day:data.day,time:data.time,payment:data.payment,amount:sum,discount,earned,club:{orders:club.orders+1,balance:club.balance-discount+earned},items:{...cart},address:data.address||''};
+ const sum=total(),order={clubId:newLocalId(),number:String(Date.now()).slice(-6),mode:data.mode,day:data.day,time:data.time,payment:data.payment,amount:sum,items:{...cart},address:data.address||''};
  savedAddresses(); // Migrate the previous delivery address before replacing its order.
  if (order.mode === 'delivery') rememberAddress(order.address);
  order.names = Object.fromEntries(dishes.filter(dish => cart[dish.id]).map(dish => [dish.id, dish.name]));
- write(lastOrderKey,order);saveContacts(f);
+ write(lastOrderKey,order);
+ window.dispatchEvent(new CustomEvent('shop-order-saved', {detail:order}));
+ saveContacts(f);
  cart={};write(cartKey,cart);draft={};renderMenu();openPanel('Заказ оформлен','receipt');
  body.innerHTML='<div class="receipt"><span class="receipt-mark">'+icon('check')+'</span><h3>Демо-заказ № '+order.number+'</h3><p class="panel-copy">Заказ оформлен на этом устройстве. Деньги не списаны, заявка в ресторан не отправлена.</p><dl id="summary"></dl><button class="primary full" data-do="menu">Вернуться в меню</button></div>';
- const rows=[['Получение',data.mode==='delivery'?'Доставка':'Самовывоз'],[data.mode==='delivery'?'Адрес':'Место',data.mode==='delivery'?data.address:'«Нахлебники», Смоленск'],['Ко времени',dayLabel(data.day)+', '+data.time+' МСК'],['Оплата',data.payment==='card'?'Картой при получении':'Наличными при получении'],['Скидка баллами',price(discount)],['К оплате',price(sum)],['Начислено баллов',String(earned)]];
+ const orderList = document.createElement('ul');
+ orderList.className = 'order-items';
+ for (const line of lastOrderItems(order)) {
+   const item = document.createElement('li');
+   item.textContent = line.name + ' × ' + line.count;
+   orderList.append(item);
+ }
+ $('#summary').before(orderList);
+ const rows=[['Получение',data.mode==='delivery'?'Доставка':'Самовывоз'],[data.mode==='delivery'?'Адрес':'Место',data.mode==='delivery'?data.address:'«Нахлебники», Смоленск'],['Ко времени',dayLabel(data.day)+', '+data.time+' МСК'],['Оплата',data.payment==='card'?'Картой при получении':'Наличными при получении'],['Итого',price(sum)]];
  rows.forEach(([label,value])=>{const dt=document.createElement('dt'),dd=document.createElement('dd');dt.textContent=label;dd.textContent=value;$('#summary').append(dt,dd)});
 }
 function changeCart(action,id,button){
@@ -445,13 +484,15 @@ function changeCart(action,id,button){
  replacement?.focus({preventScroll:true});
 }
 document.addEventListener('click',e=>{
- const tab = e.target.closest('[data-tab]');
- if (tab) {
-   const name = tab.dataset.tab;
-   if (name === 'cart') showCart();
-   else if (name === 'pickup') showPickup();
-   else if (name === 'profile') { if (screen !== 'profile') showProfile(); }
-   else openMenuTab(name);
+ const promo = e.target.closest('[data-promo]');
+ if (promo) { navigate('#group-' + promo.dataset.promo); return; }
+ const story = e.target.closest('[data-story]');
+ if (story) { showStory(Number(story.dataset.story)); return; }
+ const slide = e.target.closest('[data-slide]');
+ if (slide) {
+   const rail = $('#promo-rail');
+   const step = rail.children[1].offsetLeft - rail.children[0].offsetLeft;
+   rail.scrollBy({left: Number(slide.dataset.slide) * step, behavior:motion()});
    return;
  }
  if (e.target.closest('#favorite-filter')) {
@@ -477,7 +518,7 @@ document.addEventListener('click',e=>{
    return;
  }
  const tile = e.target.closest('[data-cat]');
- if (tile) { openCategory(tile.dataset.cat); return; }
+ if (tile) { e.preventDefault(); goToCategory(tile.dataset.cat); return; }
  const addressButton = e.target.closest('[data-edit-address]');
  if (addressButton) { editAddress(addressButton.dataset.editAddress); return; }
  const button=e.target.closest('[data-do]');if(!button)return;
@@ -487,14 +528,10 @@ document.addEventListener('click',e=>{
  if(action==='profile')showProfile();
  if(action==='personal')showPersonal();
  if(action==='care')showCare();
- if(action==='search')showSearch();
- if(action==='sandwiches')openCategory('Сэндвичи');
- if(action==='all-dishes'){e.preventDefault();openMenuTab('catalog')}
- if(action==='sections'){if(history.state?.fromCover) history.back(); else openMenuTab('catalog')}
+ if(action==='clear-filters'){ $('#dish-query').value=''; favoritesOnly=false; renderMenu(); $('#dish-query').focus(); }
+ if(action==='stories') $('#stories').scrollIntoView({behavior:motion()});
  if(action==='pickup-location')showPickup();
- if(action==='news')showNews();
- if(action==='home-about')showAbout(true);
- if(action==='home'){e.preventDefault();openMenuTab('home')}
+ if(action==='home'){e.preventDefault();navigate('#top')}
  if(action==='about')showAbout();
  if(action==='addresses')showAddresses();
  if(action==='new-address')editAddress();
@@ -502,10 +539,10 @@ document.addEventListener('click',e=>{
  if(action==='checkout')showCheckout();
  if(action==='info')showInfo();
  if(action==='close'){storeDraft();panel.close()}
- if(action==='menu')openMenuTab('catalog');
+ if(action==='menu'){e.preventDefault();navigate('#menu')}
 });
-document.addEventListener('change',e=>{if(e.target.id==='use-points')refreshCheckoutTotal();if(e.target.id==='saved-address' && e.target.value){$('#address').value=e.target.value;$('#address').setCustomValidity('')}if(e.target.name==='mode')updateMode();if(e.target.id==='day')updateTimes();if(e.target.id==='time')e.target.setCustomValidity('')});
-document.addEventListener('input',e=>{if(e.target.id==='dish-query')renderSearchResults(); if(e.target.id==='address') $('#saved-address').value=e.target.value; if (['checkout','profile','edit-address'].includes(e.target.form?.id)) e.target.setCustomValidity(''); if(e.target.form?.id==='profile') $('.profile-feedback').textContent='';});
+document.addEventListener('change',e=>{if(e.target.id==='saved-address' && e.target.value){$('#address').value=e.target.value;$('#address').setCustomValidity('')}if(e.target.name==='mode'){setFulfilment(e.target.value);updateMode();}if(e.target.id==='day')updateTimes();if(e.target.id==='time')e.target.setCustomValidity('')});
+document.addEventListener('input',e=>{if(e.target.id==='dish-query')renderMenu(); if(e.target.id==='address') $('#saved-address').value=e.target.value; if (['checkout','profile','edit-address'].includes(e.target.form?.id)) e.target.setCustomValidity(''); if(e.target.form?.id==='profile') $('.profile-feedback').textContent='';});
 document.addEventListener('submit', e => {
  const form = e.target;
  e.preventDefault();
@@ -530,27 +567,19 @@ panel.addEventListener('close', () => {
  if (panel.open) return;
  screen = '';
  document.body.classList.remove('modal');
- document.body.insertBefore(appNav, panel);
- appNav.hidden = false;
- selectTab(menuTab);
 });
 window.addEventListener('popstate', applyRoute);
-
-window.addEventListener('storage',e=>{if(e.key===cartKey||e.key===null){cart=getCart();renderMenu();if(screen==='cart')showCart();if(screen==='checkout'){storeDraft();showCheckout()}}});
 window.addEventListener('storage', event => {
- if (event.key === contactKey || event.key === null) refreshGreeting();
+ if (event.key === cartKey || event.key === null) {
+   cart = getCart();
+   renderMenu();
+   if (screen === 'cart') showCart();
+   if (screen === 'checkout') { storeDraft(); showCheckout(); }
+ }
  if (event.key === favoritesKey || event.key === null) {
    favorites = readFavorites();
    renderMenu();
  }
 });
-renderCategories();applyRoute();
-refreshGreeting();
-
-const storyButton = $('#reveal-hint');
-storyButton.addEventListener('click', () => {
- const open = storyButton.getAttribute('aria-expanded') === 'false';
- storyButton.setAttribute('aria-expanded', String(open));
- $('#home-story').setAttribute('aria-hidden', String(!open));
- $('#reveal-label').textContent = open ? 'Свернуть блок' : 'Подробнее о сэндвич-шопе';
-});
+renderHome();
+applyRoute();

@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#ed392e">
+<link rel="icon" href="data:,">
+<title>НАХЛЕБНИКИ — сэндвич-шоп в Смоленске</title>
+<link rel="stylesheet" href="style.css?v=inline14">
+</head>
+<body>
+<header class="masthead" hidden><div class="mast-inner">
+  <a href="#top" data-do="home" class="brand" aria-label="НАХЛЕБНИКИ, на главную"><span class="brand-icon" data-icon="bread"></span><span>НАХЛЕБНИКИ</span></a>
+  <nav class="main-links" aria-label="Основная навигация">
+    <a href="#menu" class="menu-link" data-do="menu"><i data-icon="grid"></i>Каталог</a>
+    <button data-do="cart"><i data-icon="bag"></i><span>Корзина</span><b id="cart-count" data-cart-count hidden>0</b></button>
+    <button data-do="profile"><i data-icon="person"></i><span>Профиль</span></button>
+  </nav>
+</div></header>
+<main>
+<div id="home-actions">
+  <section class="hero" aria-labelledby="hero-title">
+    <nav class="hero-actions" aria-label="Личный кабинет">
+      <button class="hero-icon" data-do="profile" aria-label="Профиль"><i data-icon="avatar"></i></button>
+      <div class="hero-account">
+        <button class="bonus-chip" data-club="club" aria-label="Клуб НАХЛЕБНИКОВ, демо-баланс"><strong id="cover-balance">90</strong><i data-icon="gift"></i><small>Демо</small></button>
+        <button class="hero-icon bell-button" data-club="notifications" aria-label="Уведомления"><i data-icon="bell"></i><span id="unread-dot" hidden></span></button>
+      </div>
+    </nav>
+    <div class="poster">
+      <div class="poster-kicker"><b aria-hidden="true"></b>Сэндвич-шоп в Смоленске<b aria-hidden="true"></b></div>
+      <h1 id="hero-title">НАХЛЕБНИКИ</h1>
+    </div>
+    <div class="mascot-stage">
+      <span class="ink-star star-left" aria-hidden="true"></span><span class="ink-star star-right" aria-hidden="true"></span>
+      <span class="ink-star star-small" aria-hidden="true"></span>
+      <div class="mascot-shadow" aria-hidden="true"></div>
+      <img class="hero-mascot" src="assets/plush-sandwich.webp" width="800" height="800" fetchpriority="high" alt="Фирменный плюшевый сэндвич «Нахлебников»">
+      <div class="bread-stamp" aria-label="Печём фокаччу сами"><span aria-hidden="true">ПЕЧЁМ<br>САМИ</span></div>
+    </div>
+    <div class="hero-foot"><button class="location-link" data-do="pickup-location"><i data-icon="pin"></i><span>Дзержинского, 4</span></button><button class="scroll-link" data-do="stories">Новости и акции <i data-icon="down"></i></button></div>
+  </section>
+  <div class="home-feed wrap">
+    <section id="stories" aria-label="Сторис о новинках и акциях"><div class="story-rail" id="story-rail"></div></section>
+    <section class="promotions" aria-label="Промокарточки"><div class="promo-rail" id="promo-rail"></div><div class="rail-controls" aria-label="Листать промокарточки"><button data-slide="-1" aria-label="Предыдущая промокарточка"><i data-icon="back"></i></button><button data-slide="1" aria-label="Следующая промокарточка"><i data-icon="chevron"></i></button></div></section>
+  </div>
+</div>
+<section id="menu" aria-labelledby="menu-title">
+  <div class="catalog-intro wrap"><h1 id="menu-title">Каталог</h1><div class="catalog-tools">
+    <label class="search"><i data-icon="search"></i><input id="dish-query" type="search" placeholder="Название или состав" aria-label="Поиск по названию и составу" autocomplete="off"></label>
+    <button id="favorite-filter" aria-controls="products" aria-pressed="false"><i data-icon="heart"></i>Избранное</button>
+  </div></div>
+  <div class="category-bar"><div class="category-inner wrap">
+    <nav id="categories" aria-label="Разделы меню"></nav>
+    <button type="button" class="catalog-cart" data-do="cart" aria-label="Корзина"><i data-icon="bag"></i><span>Корзина</span><b data-cart-count hidden>0</b></button>
+  </div></div>
+  <div id="products" class="wrap"></div>
+  <div id="no-results" class="wrap" hidden><h2 id="empty-title"></h2><button data-do="clear-filters" class="primary">Показать всё меню</button></div>
+  <p class="sr" id="search-count" role="status"></p>
+</section>
+</main>
+<template id="empty-cart-content">
+  <section class="empty-cart"><img src="assets/plush-sandwich.webp" width="800" height="800" alt="Плюшевый сэндвич"><h3>Корзина пока пуста</h3><p>Выбери, какой сэндвич соберём для тебя.</p><button class="primary" data-do="menu">Перейти в каталог</button></section>
+</template>
+<template id="about-content">
+<article class="about-shop">
+<p class="about-address">Смоленск, ул. Дзержинского, 4</p>
+<p class="about-intro">«Нахлебники» — первый сэндвич-шоп Смоленска. Здесь сэндвичи собирают на фокачче, которую пекут сами. Начинки кладут щедро, а к сэндвичу можно взять фирменную содовую.</p>
+<figure class="about-photo"><img src="assets/guide-sandwich.jpg" width="460" height="613" alt="Две половинки сэндвича на фокачче в открытой коробке"></figure>
+<p>В зале легко узнать девяностые. Пока готовится заказ, можно сыграть партию в настольный футбол или вспомнить любимую игру на аркадном автомате.</p>
+<div class="about-founder"><img src="assets/guide-founder.png" width="64" height="64" alt="Портрет Сабита Гусейнова"><div><h3>Сабит Гусейнов</h3><p>Основатель «Нахлебников» и ресторана «Нега».</p></div></div>
+<p class="about-credit">Рассказ подготовлен по материалу с фотографиями из смоленского гастрогида. <a class="about-source" target="_blank" rel="noopener noreferrer">«Куда идти за вкусным вау-эффектом»</a></p>
+</article></template>
+<dialog id="panel" aria-labelledby="panel-title"><div class="panel-inner"><div class="panel-header"><button type="button" class="club-back" data-club="back" hidden><i data-icon="back"></i>Назад</button><h2 id="panel-title"></h2><button class="icon-btn" aria-label="Закрыть" data-do="close"><i data-icon="close"></i></button></div><div id="panel-body"></div></div></dialog>
+<div class="sr" role="status" id="status"></div>
+<script src="app.js?v=inline14"></script>
+<script src="club.js?v=club12"></script>
+</body></html>

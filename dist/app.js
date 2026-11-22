@@ -218,11 +218,7 @@ function goToCategory(id, behavior = motion()) {
 }
 let frame = 0;
 function scheduleSync() {
-  if ($('#menu').hidden) {
-    document.body.classList.toggle('past-cover-top', window.scrollY > $('.masthead').offsetHeight);
-    return;
-  }
-  if (frame) return;
+  if ($('#menu').hidden || frame) return;
   frame = requestAnimationFrame(() => { frame = 0; syncCategory(); });
 }
 window.addEventListener('scroll', scheduleSync, {passive:true});
@@ -242,7 +238,7 @@ history.scrollRestoration = 'manual';
 function applyRoute() {
   if (panel.open) panel.close();
   const catalog = /^#menu(?:\/|$)/.test(location.hash);
-  document.body.classList.toggle('home-view', !catalog);
+  $('.masthead').hidden = !catalog;
   $('#home-actions').hidden = catalog;
   $('#menu').hidden = !catalog;
   if (catalog) $('.menu-link').setAttribute('aria-current','page');

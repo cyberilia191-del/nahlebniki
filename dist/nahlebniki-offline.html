@@ -142,7 +142,7 @@ button:focus-visible,a:focus-visible,input:focus-visible { outline:3px solid #e7
 .hero-foot .scroll-link i { border:1.5px solid currentColor; border-radius:50%; padding:5px; }
 .scroll-link svg { width:15px; height:15px; }
 
-.home-feed { padding-block:clamp(32px,5vw,72px) max(40px,env(safe-area-inset-bottom)); }
+.home-feed { padding-top:clamp(32px,5vw,72px); }
 .story-rail,.promo-rail,#categories { display:flex; overflow-x:auto; scrollbar-width:none; overscroll-behavior-x:contain; }
 .story-rail::-webkit-scrollbar,.promo-rail::-webkit-scrollbar,#categories::-webkit-scrollbar { display:none; }
 .story-rail { gap:clamp(15px,2.3vw,40px); padding:4px 2px 12px; }
@@ -150,23 +150,19 @@ button:focus-visible,a:focus-visible,input:focus-visible { outline:3px solid #e7
 .story-ring { display:block; width:clamp(78px,8.4vw,122px); aspect-ratio:1; border-radius:50%; padding:5px; border:2px solid var(--red); }
 .story-ring img { width:100%; height:100%; object-fit:cover; border-radius:50%; border:3px solid var(--tone); }
 .red { --tone:#f04736; } .mustard { --tone:#f4be58; } .pink { --tone:#f5a999; } .mint { --tone:#b3c5a2; } .cream { --tone:var(--cream); }
-.promotions { margin:clamp(20px,3vw,48px) 0; }
+.promotions { margin-top:clamp(20px,3vw,48px); }
 .promo-rail { gap:16px; scroll-snap-type:x mandatory; }
 .promo { position:relative; isolation:isolate; overflow:hidden; flex:0 0 clamp(310px,52%,760px); min-height:clamp(205px,22vw,340px); border-radius:22px; background:var(--tone); color:var(--ink); scroll-snap-align:start; }
 .promo img { position:absolute; top:0; right:0; width:60%; height:100%; object-fit:cover; clip-path:polygon(12% 0,100% 0,100% 100%,0 100%); }
 .promo::before { content:""; position:absolute; inset:0; background:var(--paper); pointer-events:none; }
 .promo div { position:relative; width:49%; padding:clamp(16px,2.3vw,40px); height:100%; display:flex; align-items:flex-start; flex-direction:column; justify-content:space-between; gap:20px; }
-.promo h2,.fulfilment h2,.catalog-intro h1,.menu-group h2,.story-detail h3,#empty-title,.empty-cart h3 { font:700 clamp(1.8rem,3.1vw,3.4rem)/1.04 var(--display); letter-spacing:-.04em; text-transform:uppercase; }
+.promo h2,.catalog-intro h1,.menu-group h2,.story-detail h3,#empty-title,.empty-cart h3 { font:700 clamp(1.8rem,3.1vw,3.4rem)/1.04 var(--display); letter-spacing:-.04em; text-transform:uppercase; }
 .promo button { border:1px solid currentColor; border-radius:28px; font-weight:bold; padding:8px 15px; min-height:40px; }
 .promo button:hover { color:var(--cream); background:var(--ink); }
 .rail-controls { display:flex; justify-content:flex-end; gap:8px; margin-top:12px; }
 .rail-controls button,.icon-btn { display:grid; place-items:center; width:42px; height:42px; border-radius:50%; border:1px solid var(--line); }
 .rail-controls button:disabled { opacity:.32; }
-.fulfilment { display:flex; justify-content:space-between; align-items:center; gap:20px; padding:clamp(22px,3.4vw,52px); border:1px solid #575048; border-radius:24px; background:#262420; }
-.fulfilment p,.story-detail p,.empty-cart p { color:var(--muted); margin-top:9px; }
-.fulfil-options { display:flex; gap:5px; border:1px solid #565049; background:#191817; border-radius:28px; padding:4px; }
-.fulfil-options button { display:flex; align-items:center; justify-content:center; gap:7px; min-height:44px; border-radius:24px; padding:8px 15px; }
-.fulfil-options [aria-pressed="true"] { background:var(--cream); color:var(--ink); font-weight:bold; }
+.story-detail p,.empty-cart p { color:var(--muted); margin-top:9px; }
 .story-detail img { width:100%; height:min(42vh,330px); object-fit:cover; border-radius:18px; margin-bottom:20px; }
 .story-detail p { margin-bottom:24px; }
 
@@ -180,7 +176,16 @@ button:focus-visible,a:focus-visible,input:focus-visible { outline:3px solid #e7
 .search input::placeholder { color:var(--muted); opacity:1; }
 #favorite-filter[aria-pressed="true"],.favorite-heart[aria-pressed="true"] { color:#ff7968; border-color:var(--red); }
 .category-bar { position:sticky; top:var(--mast-height); z-index:4; background:#1a1917; border-block:1px solid #ffffff25; }
-#categories { gap:clamp(18px,3.2vw,52px); }
+#home-actions:not([hidden]) + #menu .catalog-intro { padding-top:clamp(20px,3vw,40px); }
+#home-actions:not([hidden]) + #menu .category-bar { padding-top:env(safe-area-inset-top,0px); }
+.category-inner { display:flex; align-items:center; gap:12px; padding-inline:max(var(--gutter),env(safe-area-inset-left)) max(var(--gutter),env(safe-area-inset-right)); }
+.catalog-cart { flex:none; display:inline-flex; align-items:center; justify-content:center; gap:6px; padding:6px 12px; min-height:40px; border-radius:24px; background:var(--cream); color:var(--ink); font-weight:700; }
+.catalog-cart b { font-size:.85rem; }
+@media (max-width:550px) {
+  .catalog-cart { min-width:40px; padding-inline:10px; }
+  .catalog-cart span { display:none; }
+}
+#categories { flex:1; min-width:0; gap:clamp(18px,3.2vw,52px); }
 #categories a { flex:none; padding:14px 2px 11px; border-bottom:3px solid transparent; color:#b2aea7; font-weight:700; }
 #categories a[aria-current] { color:#fff; border-color:var(--red); }
 #categories a:focus-visible { outline-offset:-4px; }
@@ -190,8 +195,8 @@ button:focus-visible,a:focus-visible,input:focus-visible { outline:3px solid #e7
 .menu-group h2 { font-size:clamp(2.05rem,3.4vw,3.5rem); margin-bottom:18px; }
 .products { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:clamp(12px,2vw,28px); }
 .product { min-width:0; display:flex; flex-direction:column; border-radius:16px; overflow:hidden; background:#242220; border:1px solid #393632; }
-.photo { aspect-ratio:1.6; position:relative; background:#302b25; }
-.photo img { width:100%; height:100%; object-fit:cover; display:block; }
+.photo { flex:none; aspect-ratio:1.6; position:relative; background:#302b25; }
+.photo img { position:absolute; inset:0; width:100%; height:100%; object-fit:cover; display:block; }
 .favorite-heart { position:absolute; top:8px; right:8px; display:grid; place-items:center; width:40px; height:40px; border:1px solid #ffffff40; background:#211c18eb; border-radius:50%; }
 .favorite-heart[aria-pressed=true] svg,#favorite-filter[aria-pressed=true] svg { fill:currentColor; }
 .product-body { flex:1; padding:16px; display:flex; flex-direction:column; }
@@ -230,8 +235,7 @@ dialog { background:var(--paper),#201e1b; }
   .bread-stamp { left:78%; top:67%; }
   .hero-foot { font-size:.9rem; }
   .hero-foot svg { width:18px; }
-  .fulfilment,.catalog-intro { align-items:stretch; flex-direction:column; }
-  .fulfil-options { align-self:flex-start; }
+  .catalog-intro { align-items:stretch; flex-direction:column; }
   .catalog-intro { gap:16px; }
   .catalog-tools .search { flex:1; min-width:0; }
   .search input { width:100%; }
@@ -262,9 +266,6 @@ dialog { background:var(--paper),#201e1b; }
   .story { font-size:.875rem; }
   .promo { flex-basis:87%; border-radius:18px; }
   .promo h2 { font-size:clamp(1.6rem,7.5vw,2.2rem); }
-  .fulfilment { padding:22px 18px; }
-  .fulfil-options { width:100%; }
-  .fulfil-options button { flex:1; padding:8px; font-size:.93rem; }
   .search,#favorite-filter { padding-inline:11px; gap:6px; }
   #favorite-filter { font-size:.875rem; }
   .product h3 { font-size:1.25rem; }
@@ -428,7 +429,7 @@ dialog[data-screen^="club"] .panel-header .icon-btn { display:none; }
   <a href="#top" data-do="home" class="brand" aria-label="НАХЛЕБНИКИ, на главную"><span class="brand-icon" data-icon="bread"></span><span>НАХЛЕБНИКИ</span></a>
   <nav class="main-links" aria-label="Основная навигация">
     <a href="#menu" class="menu-link" data-do="menu"><i data-icon="grid"></i>Каталог</a>
-    <button data-do="cart"><i data-icon="bag"></i><span>Корзина</span><b id="cart-count" hidden>0</b></button>
+    <button data-do="cart"><i data-icon="bag"></i><span>Корзина</span><b id="cart-count" data-cart-count hidden>0</b></button>
     <button data-do="profile"><i data-icon="person"></i><span>Профиль</span></button>
   </nav>
 </div></header>
@@ -458,21 +459,17 @@ dialog[data-screen^="club"] .panel-header .icon-btn { display:none; }
   <div class="home-feed wrap">
     <section id="stories" aria-label="Сторис о новинках и акциях"><div class="story-rail" id="story-rail"></div></section>
     <section class="promotions" aria-label="Промокарточки"><div class="promo-rail" id="promo-rail"></div><div class="rail-controls" aria-label="Листать промокарточки"><button data-slide="-1" aria-label="Предыдущая промокарточка"><i data-icon="back"></i></button><button data-slide="1" aria-label="Следующая промокарточка"><i data-icon="chevron"></i></button></div></section>
-    <section class="fulfilment" aria-labelledby="mode-title">
-      <div><h2 id="mode-title">Как заберёшь заказ?</h2><p id="home-mode-detail" aria-live="polite"></p></div>
-      <div class="fulfil-options" role="group" aria-label="Способ получения">
-        <button type="button" data-mode="delivery"><i data-icon="truck"></i>Доставка</button>
-        <button type="button" data-mode="pickup"><i data-icon="bag"></i>Самовывоз</button>
-      </div>
-    </section>
   </div>
 </div>
-<section id="menu" aria-labelledby="menu-title" hidden>
+<section id="menu" aria-labelledby="menu-title">
   <div class="catalog-intro wrap"><h1 id="menu-title">Каталог</h1><div class="catalog-tools">
     <label class="search"><i data-icon="search"></i><input id="dish-query" type="search" placeholder="Название или состав" aria-label="Поиск по названию и составу" autocomplete="off"></label>
     <button id="favorite-filter" aria-controls="products" aria-pressed="false"><i data-icon="heart"></i>Избранное</button>
   </div></div>
-  <div class="category-bar"><nav id="categories" class="wrap" aria-label="Разделы меню"></nav></div>
+  <div class="category-bar"><div class="category-inner wrap">
+    <nav id="categories" aria-label="Разделы меню"></nav>
+    <button type="button" class="catalog-cart" data-do="cart" aria-label="Корзина"><i data-icon="bag"></i><span>Корзина</span><b data-cart-count hidden>0</b></button>
+  </div></div>
   <div id="products" class="wrap"></div>
   <div id="no-results" class="wrap" hidden><h2 id="empty-title"></h2><button data-do="clear-filters" class="primary">Показать всё меню</button></div>
   <p class="sr" id="search-count" role="status"></p>
@@ -592,7 +589,6 @@ function renderHome() {
   $('#promo-rail').innerHTML = promos.map(promo =>
     `<article class="promo ${promo.tone}"><img src="${assets[promo.dish]}" loading="lazy" alt=""><div><h2>${promo.title}</h2><button data-promo="${promo.target}">Открыть</button></div></article>`
   ).join('');
-  renderFulfilment();
   updateRailControls();
 }
 function updateRailControls() {
@@ -603,17 +599,10 @@ function updateRailControls() {
   $('[data-slide="1"]').disabled = remaining < 2;
 }
 $('#promo-rail').addEventListener('scroll', updateRailControls, {passive:true});
-function renderFulfilment() {
-  for (const button of document.querySelectorAll('[data-mode]')) {
-    button.setAttribute('aria-pressed', String(button.dataset.mode === fulfilmentMode));
-  }
-  $('#home-mode-detail').textContent = fulfilmentMode === 'pickup' ? 'Смоленск, ул. Дзержинского, 4' : 'Доставка по Смоленску';
-}
 function setFulfilment(mode) {
   fulfilmentMode = mode;
   draft.mode = mode;
   write(modeKey, mode);
-  renderFulfilment();
 }
 function openPanel(title, view) {
   screen = view;
@@ -633,14 +622,14 @@ function showStory(index) {
   const action = document.createElement('button');
   action.className = 'primary full';
   action.textContent = 'В каталог';
-  action.addEventListener('click', () => navigate(story.target === 'menu' ? '#menu' : '#menu/' + story.target));
+  action.addEventListener('click', () => navigate(story.target === 'menu' ? '#menu' : '#group-' + story.target));
   body.append(action);
   if (story.dish === 'chicken') {
     action.textContent = 'К сэндвичам';
     const drinks = document.createElement('button');
     drinks.className = 'story-drinks';
     drinks.textContent = 'К напиткам';
-    drinks.addEventListener('click', () => navigate('#menu/lemonade'));
+    drinks.addEventListener('click', () => navigate('#group-lemonade'));
     body.append(drinks);
   }
 }
@@ -655,9 +644,11 @@ function dishCard(dish) {
 }
 function renderMenu() {
   const count = qty();
-  $('#cart-count').hidden = count === 0;
-  $('#cart-count').textContent = count;
-  if ($('#menu').hidden) return;
+  for (const badge of document.querySelectorAll('[data-cart-count]')) {
+    badge.hidden = count === 0;
+    badge.textContent = count;
+    badge.closest('button').setAttribute('aria-label', count ? 'Корзина, ' + count + ' шт.' : 'Корзина');
+  }
   const query = normalized($('#dish-query').value);
   const terms = query.split(/\s+/);
   const visible = dishes.filter(dish => {
@@ -676,7 +667,7 @@ function renderMenu() {
     $('#categories').innerHTML = groups.map(group => `<a href="#menu/${group.id}" data-cat="${group.id}">${group.name}</a>`).join('');
     activeCategory = '';
   }
-  $('.category-bar').hidden = !groups.length;
+  $('.category-bar').hidden = !groups.length && $('.catalog-cart').hidden;
   $('#no-results').hidden = groups.length > 0;
   $('#empty-title').textContent = query ? 'Блюд по запросу нет' : 'Пока нет избранного';
   $('#search-count').textContent = 'Блюд в меню: ' + visible.length;
@@ -684,7 +675,6 @@ function renderMenu() {
 }
 let activeCategory = '';
 function syncCategory() {
-  if ($('#menu').hidden) return;
   const line = $('.category-bar').getBoundingClientRect().bottom + 12;
   const groups = document.querySelectorAll('.menu-group');
   let current = groups[0];
@@ -713,7 +703,7 @@ function goToCategory(id, behavior = motion()) {
 }
 let frame = 0;
 function scheduleSync() {
-  if ($('#menu').hidden || frame) return;
+  if (frame) return;
   frame = requestAnimationFrame(() => { frame = 0; syncCategory(); });
 }
 window.addEventListener('scroll', scheduleSync, {passive:true});
@@ -727,7 +717,8 @@ function measureBars() {
 }
 const barObserver = new ResizeObserver(measureBars);
 barObserver.observe($('.masthead'), {box:'border-box'});
-barObserver.observe($('.category-bar'));
+barObserver.observe($('.category-bar'), {box:'border-box'});
+barObserver.observe($('#categories'));
 window.addEventListener('resize', measureBars);
 history.scrollRestoration = 'manual';
 function applyRoute() {
@@ -735,7 +726,7 @@ function applyRoute() {
   const catalog = /^#menu(?:\/|$)/.test(location.hash);
   $('.masthead').hidden = !catalog;
   $('#home-actions').hidden = catalog;
-  $('#menu').hidden = !catalog;
+  $('.catalog-cart').hidden = catalog;
   if (catalog) $('.menu-link').setAttribute('aria-current','page');
   else $('.menu-link').removeAttribute('aria-current');
   $('#dish-query').value = '';
@@ -743,9 +734,9 @@ function applyRoute() {
   activeCategory = '';
   renderMenu();
   measureBars();
-  const routeId = location.hash.split('/')[1];
+  const routeId = location.hash.match(/^#(?:menu\/|group-)([\w-]+)$/)?.[1];
   if (history.state?.scrollY != null) window.scrollTo({top:history.state.scrollY,behavior:'instant'});
-  else if (catalog && sections.some(section => section.id === routeId)) goToCategory(routeId, 'instant');
+  else if (sections.some(section => section.id === routeId)) goToCategory(routeId, 'instant');
   else window.scrollTo({top:0,behavior:'instant'});
   syncCategory();
   scheduleSync();
@@ -986,11 +977,9 @@ function changeCart(action,id,button){
 }
 document.addEventListener('click',e=>{
  const promo = e.target.closest('[data-promo]');
- if (promo) { navigate('#menu/' + promo.dataset.promo); return; }
+ if (promo) { navigate('#group-' + promo.dataset.promo); return; }
  const story = e.target.closest('[data-story]');
  if (story) { showStory(Number(story.dataset.story)); return; }
- const fulfil = e.target.closest('[data-mode]');
- if (fulfil) { setFulfilment(fulfil.dataset.mode); return; }
  const slide = e.target.closest('[data-slide]');
  if (slide) {
    const rail = $('#promo-rail');

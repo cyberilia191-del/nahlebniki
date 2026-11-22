@@ -6,14 +6,14 @@
 <meta name="theme-color" content="#ed392e">
 <link rel="icon" href="data:,">
 <title>НАХЛЕБНИКИ — сэндвич-шоп в Смоленске</title>
-<link rel="stylesheet" href="style.css?v=cover13">
+<link rel="stylesheet" href="style.css?v=inline14">
 </head>
 <body>
 <header class="masthead" hidden><div class="mast-inner">
   <a href="#top" data-do="home" class="brand" aria-label="НАХЛЕБНИКИ, на главную"><span class="brand-icon" data-icon="bread"></span><span>НАХЛЕБНИКИ</span></a>
   <nav class="main-links" aria-label="Основная навигация">
     <a href="#menu" class="menu-link" data-do="menu"><i data-icon="grid"></i>Каталог</a>
-    <button data-do="cart"><i data-icon="bag"></i><span>Корзина</span><b id="cart-count" hidden>0</b></button>
+    <button data-do="cart"><i data-icon="bag"></i><span>Корзина</span><b id="cart-count" data-cart-count hidden>0</b></button>
     <button data-do="profile"><i data-icon="person"></i><span>Профиль</span></button>
   </nav>
 </div></header>
@@ -43,21 +43,17 @@
   <div class="home-feed wrap">
     <section id="stories" aria-label="Сторис о новинках и акциях"><div class="story-rail" id="story-rail"></div></section>
     <section class="promotions" aria-label="Промокарточки"><div class="promo-rail" id="promo-rail"></div><div class="rail-controls" aria-label="Листать промокарточки"><button data-slide="-1" aria-label="Предыдущая промокарточка"><i data-icon="back"></i></button><button data-slide="1" aria-label="Следующая промокарточка"><i data-icon="chevron"></i></button></div></section>
-    <section class="fulfilment" aria-labelledby="mode-title">
-      <div><h2 id="mode-title">Как заберёшь заказ?</h2><p id="home-mode-detail" aria-live="polite"></p></div>
-      <div class="fulfil-options" role="group" aria-label="Способ получения">
-        <button type="button" data-mode="delivery"><i data-icon="truck"></i>Доставка</button>
-        <button type="button" data-mode="pickup"><i data-icon="bag"></i>Самовывоз</button>
-      </div>
-    </section>
   </div>
 </div>
-<section id="menu" aria-labelledby="menu-title" hidden>
+<section id="menu" aria-labelledby="menu-title">
   <div class="catalog-intro wrap"><h1 id="menu-title">Каталог</h1><div class="catalog-tools">
     <label class="search"><i data-icon="search"></i><input id="dish-query" type="search" placeholder="Название или состав" aria-label="Поиск по названию и составу" autocomplete="off"></label>
     <button id="favorite-filter" aria-controls="products" aria-pressed="false"><i data-icon="heart"></i>Избранное</button>
   </div></div>
-  <div class="category-bar"><nav id="categories" class="wrap" aria-label="Разделы меню"></nav></div>
+  <div class="category-bar"><div class="category-inner wrap">
+    <nav id="categories" aria-label="Разделы меню"></nav>
+    <button type="button" class="catalog-cart" data-do="cart" aria-label="Корзина"><i data-icon="bag"></i><span>Корзина</span><b data-cart-count hidden>0</b></button>
+  </div></div>
   <div id="products" class="wrap"></div>
   <div id="no-results" class="wrap" hidden><h2 id="empty-title"></h2><button data-do="clear-filters" class="primary">Показать всё меню</button></div>
   <p class="sr" id="search-count" role="status"></p>
@@ -77,6 +73,6 @@
 </article></template>
 <dialog id="panel" aria-labelledby="panel-title"><div class="panel-inner"><div class="panel-header"><button type="button" class="club-back" data-club="back" hidden><i data-icon="back"></i>Назад</button><h2 id="panel-title"></h2><button class="icon-btn" aria-label="Закрыть" data-do="close"><i data-icon="close"></i></button></div><div id="panel-body"></div></div></dialog>
 <div class="sr" role="status" id="status"></div>
-<script src="app.js?v=cover13"></script>
+<script src="app.js?v=inline14"></script>
 <script src="club.js?v=club12"></script>
 </body></html>

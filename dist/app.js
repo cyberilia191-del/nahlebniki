@@ -97,7 +97,6 @@ function renderHome() {
   $('#promo-rail').innerHTML = promos.map(promo =>
     `<article class="promo ${promo.tone}"><img src="${assets[promo.dish]}" loading="lazy" alt=""><div><h2>${promo.title}</h2><button data-promo="${promo.target}">Открыть</button></div></article>`
   ).join('');
-  renderFulfilment();
   updateRailControls();
 }
 function updateRailControls() {
@@ -108,17 +107,10 @@ function updateRailControls() {
   $('[data-slide="1"]').disabled = remaining < 2;
 }
 $('#promo-rail').addEventListener('scroll', updateRailControls, {passive:true});
-function renderFulfilment() {
-  for (const button of document.querySelectorAll('[data-mode]')) {
-    button.setAttribute('aria-pressed', String(button.dataset.mode === fulfilmentMode));
-  }
-  $('#home-mode-detail').textContent = fulfilmentMode === 'pickup' ? 'Смоленск, ул. Дзержинского, 4' : 'Доставка по Смоленску';
-}
 function setFulfilment(mode) {
   fulfilmentMode = mode;
   draft.mode = mode;
   write(modeKey, mode);
-  renderFulfilment();
 }
 function openPanel(title, view) {
   screen = view;
@@ -138,14 +130,14 @@ function showStory(index) {
   const action = document.createElement('button');
   action.className = 'primary full';
   action.textContent = 'В каталог';
-  action.addEventListener('click', () => navigate(story.target === 'menu' ? '#menu' : '#menu/' + story.target));
+  action.addEventListener('click', () => navigate(story.target === 'menu' ? '#menu' : '#group-' + story.target));
   body.append(action);
   if (story.dish === 'chicken') {
     action.textContent = 'К сэндвичам';
     const drinks = document.createElement('button');
     drinks.className = 'story-drinks';
     drinks.textContent = 'К напиткам';
-    drinks.addEventListener('click', () => navigate('#menu/lemonade'));
+    drinks.addEventListener('click', () => navigate('#group-lemonade'));
     body.append(drinks);
   }
 }
@@ -160,9 +152,11 @@ function dishCard(dish) {
 }
 function renderMenu() {
   const count = qty();
-  $('#cart-count').hidden = count === 0;
-  $('#cart-count').textContent = count;
-  if ($('#menu').hidden) return;
+  for (const badge of document.querySelectorAll('[data-cart-count]')) {
+    badge.hidden = count === 0;
+    badge.textContent = count;
+    badge.closest('button').setAttribute('aria-label', count ? 'Корзина, ' + count + ' шт.' : 'Корзина');
+  }
   const query = normalized($('#dish-query').value);
   const terms = query.split(/\s+/);
   const visible = dishes.filter(dish => {
@@ -181,7 +175,7 @@ function renderMenu() {
     $('#categories').innerHTML = groups.map(group => `<a href="#menu/${group.id}" data-cat="${group.id}">${group.name}</a>`).join('');
     activeCategory = '';
   }
-  $('.category-bar').hidden = !groups.length;
+  $('.category-bar').hidden = !groups.length && $('.catalog-cart').hidden;
   $('#no-results').hidden = groups.length > 0;
   $('#empty-title').textContent = query ? 'Блюд по запросу нет' : 'Пока нет избранного';
   $('#search-count').textContent = 'Блюд в меню: ' + visible.length;
@@ -189,7 +183,6 @@ function renderMenu() {
 }
 let activeCategory = '';
 function syncCategory() {
-  if ($('#menu').hidden) return;
   const line = $('.category-bar').getBoundingClientRect().bottom + 12;
   const groups = document.querySelectorAll('.menu-group');
   let current = groups[0];
@@ -218,7 +211,7 @@ function goToCategory(id, behavior = motion()) {
 }
 let frame = 0;
 function scheduleSync() {
-  if ($('#menu').hidden || frame) return;
+  if (frame) return;
   frame = requestAnimationFrame(() => { frame = 0; syncCategory(); });
 }
 window.addEventListener('scroll', scheduleSync, {passive:true});
@@ -232,7 +225,8 @@ function measureBars() {
 }
 const barObserver = new ResizeObserver(measureBars);
 barObserver.observe($('.masthead'), {box:'border-box'});
-barObserver.observe($('.category-bar'));
+barObserver.observe($('.category-bar'), {box:'border-box'});
+barObserver.observe($('#categories'));
 window.addEventListener('resize', measureBars);
 history.scrollRestoration = 'manual';
 function applyRoute() {
@@ -240,7 +234,7 @@ function applyRoute() {
   const catalog = /^#menu(?:\/|$)/.test(location.hash);
   $('.masthead').hidden = !catalog;
   $('#home-actions').hidden = catalog;
-  $('#menu').hidden = !catalog;
+  $('.catalog-cart').hidden = catalog;
   if (catalog) $('.menu-link').setAttribute('aria-current','page');
   else $('.menu-link').removeAttribute('aria-current');
   $('#dish-query').value = '';
@@ -248,9 +242,9 @@ function applyRoute() {
   activeCategory = '';
   renderMenu();
   measureBars();
-  const routeId = location.hash.split('/')[1];
+  const routeId = location.hash.match(/^#(?:menu\/|group-)([\w-]+)$/)?.[1];
   if (history.state?.scrollY != null) window.scrollTo({top:history.state.scrollY,behavior:'instant'});
-  else if (catalog && sections.some(section => section.id === routeId)) goToCategory(routeId, 'instant');
+  else if (sections.some(section => section.id === routeId)) goToCategory(routeId, 'instant');
   else window.scrollTo({top:0,behavior:'instant'});
   syncCategory();
   scheduleSync();
@@ -491,11 +485,9 @@ function changeCart(action,id,button){
 }
 document.addEventListener('click',e=>{
  const promo = e.target.closest('[data-promo]');
- if (promo) { navigate('#menu/' + promo.dataset.promo); return; }
+ if (promo) { navigate('#group-' + promo.dataset.promo); return; }
  const story = e.target.closest('[data-story]');
  if (story) { showStory(Number(story.dataset.story)); return; }
- const fulfil = e.target.closest('[data-mode]');
- if (fulfil) { setFulfilment(fulfil.dataset.mode); return; }
  const slide = e.target.closest('[data-slide]');
  if (slide) {
    const rail = $('#promo-rail');
